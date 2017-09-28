@@ -8,6 +8,13 @@ More documentation about datasource plugins can be found in the [Docs](https://g
 
 clone this project into grafana plugin directory , then restart grafana
 
+in mac the plugin directory is /usr/local/var/lib/grafana/plugins
+
+after install the plugin ,restart grafana 
+
+```
+brew services start grafana
+```
 
 ## Add datasource
 
@@ -32,11 +39,11 @@ Add a panel, in the datasource option, choose the log service datasource that is
 in the query : insert your query , e.g.
 
 ```
-*|select count(1) as c, __time__- __time__%60  as t  group by __time__- __time__%60 limit 10000
+*|select count(1) as c,count(1)/2 as c1, __time__- __time__%60  as t  group by __time__- __time__%60 limit 10000
 ```
 
 the X column ,insert t
-the Y column , insert c
+the Y column , insert c,c1
 
 save the dashboard
 
