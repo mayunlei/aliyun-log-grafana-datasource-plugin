@@ -1,22 +1,17 @@
 <query-editor-row query-ctrl="ctrl" can-collapse="true">
     <div class="gf-form-inline">
-        <div class="gf-form gf-form--grow"><label class="gf-form-label query-keyword width-7">Query</label><input type="text" class="gf-form-input" ng-model="ctrl.target.query"
+        <div class="gf-form gf-form--grow"><label class="gf-form-label query-keyword width-7">Query</label><input
+                type="text" class="gf-form-input" ng-model="ctrl.target.query"
                 spellcheck="false" placeholder="log query" ng-blur="ctrl.refresh()"></div>
-       
+
     </div>
     <div class="gf-form-inline">
-        <div class="gf-form gf-form--grow"><label class="gf-form-label query-keyword width-7">X - column</label><input type="text" class="gf-form-input" ng-model="ctrl.target.xcol"
+        <div class="gf-form gf-form--grow"><label class="gf-form-label query-keyword width-7">Y - column</label><input
+                type="text" class="gf-form-input" ng-model="ctrl.target.ycol"
+                spellcheck="false" placeholder="y column name" ng-blur="ctrl.refresh()"></div>
+        <div class="gf-form gf-form--grow"><label class="gf-form-label query-keyword">X - column [time]</label><input
+                type="text" class="gf-form-input" ng-model="ctrl.target.xcol"
                 spellcheck="false" placeholder="x column name" ng-blur="ctrl.refresh()"></div>
-    </div>
-    <div class="gf-form-inline">
-            <div class="gf-form gf-form--grow"><label class="gf-form-label query-keyword width-7">Y - column</label><input type="text" class="gf-form-input" ng-model="ctrl.target.ycol"
-                    spellcheck="false" placeholder="y column name" ng-blur="ctrl.refresh()"></div>
-        </div>
-    <div ng-repeat="agg in ctrl.target.metrics">
-        <elastic-metric-agg target="ctrl.target" index="$index" get-fields="ctrl.getFields($fieldType)" on-change="ctrl.queryUpdated()"
-            es-version="ctrl.esVersion"></elastic-metric-agg>
-    </div>
-    <div ng-repeat="agg in ctrl.target.bucketAggs">
-        <elastic-bucket-agg target="ctrl.target" index="$index" get-fields="ctrl.getFields($fieldType)" on-change="ctrl.queryUpdated()"></elastic-bucket-agg>
+
     </div>
 </query-editor-row>
