@@ -49,30 +49,34 @@ System.register([], function (_export, _context) {
                         mt = mt.toUpperCase();
 
                         bd = bd || {};
-                        bd['Date'] = new Date().toGMTString();
-                        bd['APIVersion'] = config.api_version || '0.3.0';
-                        bd['AccessKeyId'] = config.accessId;
-                        bd['SignatureMethod'] = config.signature_method;
-                        hd['User-Agent'] = "slsweb";
+                        hd['x-log-apiversion'] = config.api_version || '0.6.0';
+                        hd['x-log-bodyrawsize'] = '0';
+                        hd['x-log-signaturemethod'] = 'hmac-sha1';
+                        hd['x-sls-date'] = new Date().toGMTString();
 
-                        var sortStr = this.getSortParamStr(bd);
+                        var sortStr = "GET\n\n\n" + hd['x-sls-date'] + "\nx-log-apiversion:" + hd["x-log-apiversion"] + "\nx-log-bodyrawsize:0\nx-log-signaturemethod:hmac-sha1\n";
+                        sortStr += uri + "?" + this.getSortParamStr(bd);
 
-                        var signature = this.signFn(uri + '\n' + sortStr);
+                        var signature = this.signFn(sortStr);
+                        console.log(sortStr);
+                        console.log(signature);
+                        hd['Authorization'] = 'LOG ' + config.accessId + ":" + signature;
 
-                        var url = uri + '?' + this.getSortParamStr(bd, true) + '&Signature=' + encodeURIComponent(signature);
+                        var url = uri + '?' + this.getSortParamStr(bd, true);
 
                         var vurl = this.url + url;
-
-                        return this.backendSrv.datasourceRequest({ url: vurl,
+                        var options = { url: vurl,
                             method: "GET",
-                            header: hd
-                        });
+                            headers: hd
+                        };
+                        console.log("options", options);
+                        return this.backendSrv.datasourceRequest(options);
                     }
                 }, {
                     key: 'GetData',
-                    value: function GetData(ProjectName, opt, fn) {
-                        opt.Project = ProjectName;
-                        return this.requestData('GET', '/GetData', {}, opt, fn);
+                    value: function GetData(ProjectName, logstore, opt, fn) {
+                        opt["type"] = "log";
+                        return this.requestData('GET', '/logstores/' + logstore + "/index", {}, opt, fn);
                     }
                 }, {
                     key: 'signFn',
@@ -82,7 +86,6 @@ System.register([], function (_export, _context) {
                 }, {
                     key: 'b64_hmac_sha1',
                     value: function b64_hmac_sha1(k, d, _p, _z) {
-                        console.log(k, d);
                         // heavily optimized and compressed version of http://pajhome.org.uk/crypt/md5/sha1.js
                         // _p = b64pad, _z = character size; not used here but I left them available just in case
                         if (!_p) {

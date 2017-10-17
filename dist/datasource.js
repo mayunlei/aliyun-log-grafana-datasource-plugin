@@ -68,7 +68,7 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
 
 
                         signature_method: 'hmac-sha1', //签名计算方式，目前只支持'hmac-sha1', 默认: 'hmac-sha1'
-                        api_version: '0.3.0', //数据相关api version 默认 0.3.0
+                        api_version: '0.6.0', //数据相关api version 默认 0.3.0
 
                         logger: false //打印请求的详细信息, log4js 实例
                     };
@@ -87,17 +87,16 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                             if (target.hide) {
                                 return;
                             }
-                            var request = slsclient.GetData(_this.projectName, {
-                                "Category": _this.logstore,
-                                "Topic": "",
-                                "BeginTime": parseInt(options.range.from._d.getTime() / 1000),
-                                "EndTime": parseInt(options.range.to._d.getTime() / 1000),
-                                "Query": target.query,
-                                "Reverse": "false",
-                                "Lines": "100",
-                                "Offset": "0"
+                            var request = slsclient.GetData(_this.projectName, _this.logstore, {
+                                "topic": "",
+                                "from": parseInt(options.range.from._d.getTime() / 1000),
+                                "to": parseInt(options.range.to._d.getTime() / 1000),
+                                "query": target.query,
+                                "reverse": "false",
+                                "lines": "100",
+                                "offset": "0"
                             }).then(function (result) {
-                                if (!(result.data && result.data.GetData && result.data.GetData.Data)) {
+                                if (!result.data) {
                                     return Promise.reject(new Error("this promise is rejected"));
                                 }
 
@@ -116,7 +115,7 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                 _(result.ycol).forEach(function (col) {
                                     var datapoints = [];
 
-                                    _.sortBy(result.data.GetData.Data, [result.time_col]).forEach(function (data) {
+                                    _.sortBy(result.data, [result.time_col]).forEach(function (data) {
                                         var _time = data[result.time_col];
                                         var time = parseInt(_time) * 1000;
                                         var value = parseInt(data[col]);
@@ -162,15 +161,14 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                     key: "testDatasource",
                     value: function testDatasource() {
                         var slsclient = new SLS(this.defaultConfig, this.backendSrv, this.url);
-                        return slsclient.GetData(this.projectName, {
-                            "Category": this.logstore,
-                            "Topic": "",
-                            "BeginTime": parseInt(new Date().getTime() / 1000 - 900),
-                            "EndTime": parseInt(new Date().getTime() / 1000),
-                            "Query": "",
-                            "Reverse": "false",
-                            "Lines": "10",
-                            "Offset": "0"
+                        return slsclient.GetData(this.projectName, this.logstore, {
+                            "topic": "",
+                            "from": parseInt(new Date().getTime() / 1000 - 900),
+                            "to": parseInt(new Date().getTime() / 1000),
+                            "query": "",
+                            "reverse": "false",
+                            "line": "10",
+                            "offset": "0"
                         }).then(function (result) {
 
                             return { status: "success", message: "Database Connection OK", title: "Success" };
