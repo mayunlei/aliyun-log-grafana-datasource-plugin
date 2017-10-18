@@ -110,22 +110,32 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                 }, []);
                                 return result;
                             }).then(function (result) {
-                                console.log("test");
+                                console.log("test", result);
                                 var resResult = [];
                                 _(result.ycol).forEach(function (col) {
                                     var datapoints = [];
-
-                                    _.sortBy(result.data, [result.time_col]).forEach(function (data) {
-                                        var _time = data[result.time_col];
-                                        var time = parseInt(_time) * 1000;
-                                        var value = parseInt(data[col]);
-                                        datapoints.push([value, time]);
-                                    });
+                                    if (result.time_col != "") {
+                                        _.sortBy(result.data, [result.time_col]).forEach(function (data) {
+                                            var _time = data[result.time_col];
+                                            var time = parseInt(_time) * 1000;
+                                            var value = parseInt(data[col]);
+                                            datapoints.push([value, time]);
+                                        });
+                                    } else {
+                                        var count = 0;
+                                        _(result.data).forEach(function (data) {
+                                            var _time = count;
+                                            count -= 1;
+                                            var value = data[col];
+                                            datapoints.push([value, _time]);
+                                        });
+                                    }
                                     resResult.push({
                                         "target": col,
                                         "datapoints": datapoints
                                     });
                                 });
+                                console.log(resResult);
                                 return resResult;
                             });
                             requests.push(request);

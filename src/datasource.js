@@ -72,22 +72,33 @@ export class GenericDatasource {
                     return result
                 })
                 .then(result => {
-                    console.log("test")
+                    console.log("test",result)
                     let resResult = []
                     _(result.ycol).forEach(col => {
                         let datapoints = []
-
-                        _.sortBy(result.data, [result.time_col]).forEach(data => {
-                            const _time = data[result.time_col]
-                            const time = parseInt(_time) * 1000
-                            const value = parseInt(data[col])
-                            datapoints.push([value, time])
-                        })
+                        if(result.time_col!= ""){
+                            _.sortBy(result.data, [result.time_col]).forEach(data => {
+                                const _time = data[result.time_col]
+                                    const time = parseInt(_time) * 1000
+                                    const value = parseInt(data[col])
+                                    datapoints.push([value, time])
+                            })
+                        }
+                        else{
+                            let count = 0;
+                            _(result.data).forEach(data => {
+                                const _time = count ;
+                                count -=1;
+                                const value = (data[col])
+                                    datapoints.push([value, _time])
+                            })
+                        }
                         resResult.push({
                             "target": col,
                             "datapoints": datapoints
                         })
                     })
+                    console.log(resResult);
                     return resResult
 
                 });
