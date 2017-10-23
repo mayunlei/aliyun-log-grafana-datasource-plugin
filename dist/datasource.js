@@ -91,7 +91,7 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                 "topic": "",
                                 "from": parseInt(options.range.from._d.getTime() / 1000),
                                 "to": parseInt(options.range.to._d.getTime() / 1000),
-                                "query": target.query,
+                                "query": _this.templateSrv.replace(target.query, {}, 'glob'),
                                 "reverse": "false",
                                 "lines": "100",
                                 "offset": "0"
