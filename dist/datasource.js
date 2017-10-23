@@ -79,7 +79,7 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                     value: function query(options) {
                         var _this = this;
 
-                        console.log("hello");
+                        console.log("hello", options);
                         var requests = [];
                         var slsclient = new SLS(this.defaultConfig, this.backendSrv, this.url);
                         var promise = Promise.resolve();
@@ -129,7 +129,7 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                 var resResult = [];
                                 _(result.ycol).forEach(function (col) {
                                     var datapoints = [];
-                                    if (result.time_col != "") {
+                                    if (result.time_col != null && result.time_col != "") {
                                         _.sortBy(result.data, [result.time_col]).forEach(function (data) {
                                             var _time = data[result.time_col];
                                             var time = parseInt(_time) * 1000;
@@ -139,10 +139,10 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                     } else {
                                         var count = 0;
                                         _(result.data).forEach(function (data) {
-                                            var _time = count;
-                                            count -= 1;
+                                            console.log(data, col);
                                             var value = data[col];
-                                            datapoints.push([value, _time]);
+                                            datapoints.push([value, 1000 * (parseInt(data["__time__"]) - count)]);
+                                            count = count - 1;
                                         });
                                     }
                                     resResult.push({

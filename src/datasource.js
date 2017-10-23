@@ -39,7 +39,7 @@ export class GenericDatasource {
     }
 
     query(options) {
-        console.log("hello")
+        console.log("hello",options)
         let requests = []
         let slsclient = new SLS(this.defaultConfig, this.backendSrv, this.url);
         let promise = Promise.resolve();
@@ -98,7 +98,7 @@ export class GenericDatasource {
                     let resResult = []
                     _(result.ycol).forEach(col => {
                         let datapoints = []
-                        if(result.time_col!= ""){
+                        if(result.time_col != null && result.time_col!= ""){
                             _.sortBy(result.data, [result.time_col]).forEach(data => {
                                 const _time = data[result.time_col]
                                     const time = parseInt(_time) * 1000
@@ -109,10 +109,10 @@ export class GenericDatasource {
                         else{
                             let count = 0;
                             _(result.data).forEach(data => {
-                                const _time = count ;
-                                count -=1;
-                                const value = (data[col])
-                                    datapoints.push([value, _time])
+                                console.log(data,col);
+                                const value = (data[col]);
+                                datapoints.push([value, 1000*(parseInt(data["__time__"])-count)]);
+                                count = count-1;
                             })
                         }
                         resResult.push({
