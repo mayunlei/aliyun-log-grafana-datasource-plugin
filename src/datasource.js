@@ -47,11 +47,33 @@ export class GenericDatasource {
             if (target.hide) {
                 return
             }
+        let query = this.templateSrv.replace(target.query, {}, 'glob');
+        var re = /\$([0-9]+)([dmhs])/g;
+        var reArray = query.match(re);
+        _(reArray).forEach(col => {
+            var old = col;
+            col = col.replace("$",'');
+            var sec = 1;
+            if(col.indexOf("s") != -1)
+                sec = 1;
+            else if(col.indexOf("m") != -1)
+                sec = 60;
+            else if(col.indexOf("h") != -1)
+                sec = 3600;
+            else if(col.indexOf("d") != -1)
+                sec = 3600*24;
+            col = col .replace(/[smhd]/g,'');
+            var v = parseInt(col);
+            v = v* sec;
+            console.log(old,v,col,sec,query);
+            query = query.replace(old,v);
+        });
+
             let request = slsclient.GetData(this.projectName,this.logstore, {
                 "topic": "",
                 "from": parseInt(options.range.from._d.getTime() / 1000),
                 "to": parseInt(options.range.to._d.getTime() / 1000),
-                "query": this.templateSrv.replace(target.query, {}, 'glob'),
+                "query": query,
                 "reverse": "false",
                 "lines": "100",
                 "offset": "0"
