@@ -129,7 +129,7 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                 var resResult = [];
                                 _(result.ycol).forEach(function (col) {
                                     var datapoints = [];
-                                    if (result.time_col != null && result.time_col != "" && result.time_col != "pie") {
+                                    if (result.time_col != null && result.time_col != "" && result.time_col != "pie" && result.time_col != 'bar') {
                                         _.sortBy(result.data, [result.time_col]).forEach(function (data) {
                                             var _time = data[result.time_col];
                                             var time = parseInt(_time) * 1000;
@@ -149,7 +149,7 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                         "datapoints": datapoints
                                     });
                                 });
-                                if (result.time_col == "pie") {
+                                if (result.time_col == "pie" || result.time_col == 'bar') {
                                     var newtarget = [];
                                     var datapoints = [];
                                     var pieRes = [];

@@ -98,7 +98,7 @@ export class GenericDatasource {
                     let resResult = []
                     _(result.ycol).forEach(col => {
                         let datapoints = []
-                        if(result.time_col != null && result.time_col!= "" && result.time_col != "pie"){
+                        if(result.time_col != null && result.time_col!= "" && result.time_col != "pie" && result.time_col!='bar'){
                             _.sortBy(result.data, [result.time_col]).forEach(data => {
                                 const _time = data[result.time_col]
                                     const time = parseInt(_time) * 1000
@@ -119,7 +119,7 @@ export class GenericDatasource {
                             "datapoints": datapoints
                         })
                     })
-                    if(result.time_col == "pie"){
+                    if(result.time_col == "pie" || result.time_col=='bar'){
                         let newtarget =[];
                         let datapoints =[];
                         let pieRes = [];
