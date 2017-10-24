@@ -98,7 +98,7 @@ export class GenericDatasource {
                     let resResult = []
                     _(result.ycol).forEach(col => {
                         let datapoints = []
-                        if(result.time_col != null && result.time_col!= ""){
+                        if(result.time_col != null && result.time_col!= "" && result.time_col != "pie"){
                             _.sortBy(result.data, [result.time_col]).forEach(data => {
                                 const _time = data[result.time_col]
                                     const time = parseInt(_time) * 1000
@@ -109,7 +109,6 @@ export class GenericDatasource {
                         else{
                             let count = 0;
                             _(result.data).forEach(data => {
-                                console.log(data,col);
                                 const value = (data[col]);
                                 datapoints.push([value, 1000*(parseInt(data["__time__"])-count)]);
                                 count = count-1;
@@ -120,6 +119,18 @@ export class GenericDatasource {
                             "datapoints": datapoints
                         })
                     })
+                    if(result.time_col == "pie"){
+                        let newtarget =[];
+                        let datapoints =[];
+                        let pieRes = [];
+                        for(var i = 0;i < resResult[0].datapoints.length;++i){
+                            pieRes.push({
+                                "target" : resResult[0].datapoints[i][0],
+                                "datapoints": [resResult[1].datapoints[i]]
+                            });
+                        }
+                        return pieRes;
+                    }
                     console.log(resResult);
                     return resResult
 
@@ -238,7 +249,6 @@ export class GenericDatasource {
         options.targets = _.filter(options.targets, target => {
             return target.target !== 'select metric';
         });
-
         let targets = _.map(options.targets, target => {
             return {
                 target: this.templateSrv.replace(target.target, options.scopedVars, 'regex'),

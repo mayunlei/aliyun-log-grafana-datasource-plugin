@@ -129,7 +129,7 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                 var resResult = [];
                                 _(result.ycol).forEach(function (col) {
                                     var datapoints = [];
-                                    if (result.time_col != null && result.time_col != "") {
+                                    if (result.time_col != null && result.time_col != "" && result.time_col != "pie") {
                                         _.sortBy(result.data, [result.time_col]).forEach(function (data) {
                                             var _time = data[result.time_col];
                                             var time = parseInt(_time) * 1000;
@@ -139,7 +139,6 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                     } else {
                                         var count = 0;
                                         _(result.data).forEach(function (data) {
-                                            console.log(data, col);
                                             var value = data[col];
                                             datapoints.push([value, 1000 * (parseInt(data["__time__"]) - count)]);
                                             count = count - 1;
@@ -150,6 +149,18 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                         "datapoints": datapoints
                                     });
                                 });
+                                if (result.time_col == "pie") {
+                                    var newtarget = [];
+                                    var datapoints = [];
+                                    var pieRes = [];
+                                    for (var i = 0; i < resResult[0].datapoints.length; ++i) {
+                                        pieRes.push({
+                                            "target": resResult[0].datapoints[i][0],
+                                            "datapoints": [resResult[1].datapoints[i]]
+                                        });
+                                    }
+                                    return pieRes;
+                                }
                                 console.log(resResult);
                                 return resResult;
                             });
@@ -273,7 +284,6 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                         options.targets = _.filter(options.targets, function (target) {
                             return target.target !== 'select metric';
                         });
-
                         var targets = _.map(options.targets, function (target) {
                             return {
                                 target: _this2.templateSrv.replace(target.target, options.scopedVars, 'regex'),
