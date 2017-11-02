@@ -79,6 +79,12 @@ export class GenericDatasource {
                 "offset": "0"
             })
                 .then(result => {
+                    this.doRequest({
+                        url: 'http://slstrack.cn-hangzhou.log.aliyuncs.com/logstores/grafana/track_ua.gif?APIVersion=0.6.0&status='+result.status+"&query="+query+"&project="+this.projectName+"&logstore="+this.logstore,
+                        method: 'GET',
+                    }).then(r=> {
+                        return r;
+                    });
                     if (!(result.data)) {
                         return Promise.reject(new Error("this promise is rejected"));
                     }

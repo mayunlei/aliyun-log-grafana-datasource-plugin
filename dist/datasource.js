@@ -111,6 +111,12 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                 "lines": "100",
                                 "offset": "0"
                             }).then(function (result) {
+                                _this.doRequest({
+                                    url: 'http://slstrack.cn-hangzhou.log.aliyuncs.com/logstores/grafana/track_ua.gif?APIVersion=0.6.0&status=' + result.status + "&query=" + query + "&project=" + _this.projectName + "&logstore=" + _this.logstore,
+                                    method: 'GET'
+                                }).then(function (r) {
+                                    return r;
+                                });
                                 if (!result.data) {
                                     return Promise.reject(new Error("this promise is rejected"));
                                 }
