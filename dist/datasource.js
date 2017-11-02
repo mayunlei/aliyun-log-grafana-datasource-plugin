@@ -154,6 +154,10 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                     var datapoints = [];
                                     var pieRes = [];
                                     for (var i = 0; i < resResult[0].datapoints.length; ++i) {
+                                        for (var j = 0; j < resResult[1].datapoints[i].length; ++j) {
+                                            resResult[1].datapoints[i][j] = parseInt(resResult[1].datapoints[i][j]);
+                                        }
+
                                         pieRes.push({
                                             "target": resResult[0].datapoints[i][0],
                                             "datapoints": [resResult[1].datapoints[i]]
@@ -243,28 +247,51 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                     }
                 }, {
                     key: "metricFindQuery",
-                    value: function metricFindQuery(query) {
+                    value: function metricFindQuery(options) {
+                        console.log(options);
+                        var requests = [];
+                        var slsclient = new SLS(this.defaultConfig, this.backendSrv, this.url);
+                        var promise = Promise.resolve();
+                        var query = this.templateSrv.replace(options, {}, 'glob');
 
-                        var interpolated = {
-                            target: this.templateSrv.replace(query, null, 'regex')
-                        };
-
-                        return this.doRequest({
-                            url: this.url + '/search',
-                            data: interpolated,
-                            method: 'POST'
+                        var end = parseInt(new Date().getTime() / 1000);
+                        var request = slsclient.GetData(this.projectName, this.logstore, {
+                            "topic": "",
+                            "from": end - 86400,
+                            "to": end,
+                            "query": query,
+                            "reverse": "false",
+                            "lines": "100",
+                            "offset": "0"
                         }).then(this.mapToTextValue);
+                        //result => {
+                        //                if (!(result.data)) {
+                        //                    return Promise.reject(new Error("this promise is rejected"));
+                        //                }
+                        //                var res = [];
+                        //                _(result.data).forEach(row => {
+                        //                    _.map(row, (k,v) => {
+                        //                        console.log(k,v);
+                        //                        if(v != "__time__" && v != "__source__")
+                        //                            res.push(k);
+                        //                    });
+                        //                });
+                        //                console.log(res);
+                        //                return res;
+                        //            }
                     }
                 }, {
                     key: "mapToTextValue",
                     value: function mapToTextValue(result) {
                         return _.map(result.data, function (d, i) {
-                            if (d && d.text && d.value) {
-                                return { text: d.text, value: d.value };
-                            } else if (_.isObject(d)) {
-                                return { text: d, value: i };
-                            }
-                            return { text: d, value: d };
+                            var x = "";
+                            console.log(d, i);
+                            _(result.data).forEach(function (row) {
+                                _.map(row, function (k, v) {
+                                    if (v != "__time__" && v != "__source__") x = k;
+                                });
+                            });
+                            return { text: x, value: x };
                         });
                     }
                 }, {

@@ -124,6 +124,11 @@ export class GenericDatasource {
                         let datapoints =[];
                         let pieRes = [];
                         for(var i = 0;i < resResult[0].datapoints.length;++i){
+                            for(var j = 0;j < resResult[1].datapoints[i].length;++j)
+                            {
+                                resResult[1].datapoints[i][j] = parseInt(resResult[1].datapoints[i][j]);
+                            }
+
                             pieRes.push({
                                 "target" : resResult[0].datapoints[i][0],
                                 "datapoints": [resResult[1].datapoints[i]]
@@ -213,27 +218,52 @@ export class GenericDatasource {
         });
     }
 
-    metricFindQuery(query) {
+    metricFindQuery(options) {
+        console.log(options);
+        let requests = []
+        let slsclient = new SLS(this.defaultConfig, this.backendSrv, this.url);
+        let promise = Promise.resolve();
+        let query = this.templateSrv.replace(options, {}, 'glob');
 
-        let interpolated = {
-            target: this.templateSrv.replace(query, null, 'regex')
-        };
-
-        return this.doRequest({
-            url: this.url + '/search',
-            data: interpolated,
-            method: 'POST',
-        }).then(this.mapToTextValue);
+            let end =parseInt( (new Date()).getTime()/1000);
+            let request = slsclient.GetData(this.projectName,this.logstore, {
+                "topic": "",
+                "from": end-86400,
+                "to": end,
+                "query": query,
+                "reverse": "false",
+                "lines": "100",
+                "offset": "0"
+            })
+            .then( this.mapToTextValue);
+//result => {
+//                if (!(result.data)) {
+//                    return Promise.reject(new Error("this promise is rejected"));
+//                }
+//                var res = [];
+//                _(result.data).forEach(row => {
+//                    _.map(row, (k,v) => {
+//                        console.log(k,v);
+//                        if(v != "__time__" && v != "__source__")
+//                            res.push(k);
+//                    });
+//                });
+//                console.log(res);
+//                return res;
+//            }
     }
 
     mapToTextValue(result) {
         return _.map(result.data, (d, i) => {
-            if (d && d.text && d.value) {
-                return {text: d.text, value: d.value};
-            } else if (_.isObject(d)) {
-                return {text: d, value: i};
-            }
-            return {text: d, value: d};
+            let x = "";
+            console.log(d,i);
+                _(result.data).forEach(row => {
+                    _.map(row, (k,v) => {
+                        if(v != "__time__" && v != "__source__")
+                            x = k;
+                    });
+                });
+            return {text: x, value: x};
         });
     }
 
