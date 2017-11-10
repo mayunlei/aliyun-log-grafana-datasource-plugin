@@ -39,6 +39,9 @@ System.register([], function (_export, _context) {
                     this.config = config;
                     this.backendSrv = backendSrv;
                     this.url = url;
+                    this.hexcase = 0; /* hex output format. 0 - lowercase; 1 - uppercase    */
+                    this.b64pad = ""; /* base-64 pad character. "=" for strict RFC compliance  */
+                    this.chrsz = 8; /* bits per input character. 8 - ASCII; 16 - Unicode   */
                 }
 
                 _createClass(SLS, [{
@@ -81,11 +84,50 @@ System.register([], function (_export, _context) {
                 }, {
                     key: 'signFn',
                     value: function signFn(str) {
-                        return this.b64_hmac_sha1(this.config.accessKey, str);
+                        return this.signStr(this.config.accessKey, str);
+                        //return this.b64_hmac_sha12(this.config.accessKey,str);
                     }
                 }, {
-                    key: 'b64_hmac_sha1',
-                    value: function b64_hmac_sha1(k, d, _p, _z) {
+                    key: 'stringToUtf8ByteArray',
+                    value: function stringToUtf8ByteArray(str) {
+                        // TODO(user): Use native implementations if/when available
+                        var out = [],
+                            p = 0;
+                        for (var i = 0; i < str.length; i++) {
+                            var c = str.charCodeAt(i);
+                            if (c < 128) {
+                                out[p++] = c;
+                            } else if (c < 2048) {
+                                out[p++] = c >> 6 | 192;
+                                out[p++] = c & 63 | 128;
+                            } else if ((c & 0xFC00) == 0xD800 && i + 1 < str.length && (str.charCodeAt(i + 1) & 0xFC00) == 0xDC00) {
+                                // Surrogate Pair
+                                c = 0x10000 + ((c & 0x03FF) << 10) + (str.charCodeAt(++i) & 0x03FF);
+                                out[p++] = c >> 18 | 240;
+                                out[p++] = c >> 12 & 63 | 128;
+                                out[p++] = c >> 6 & 63 | 128;
+                                out[p++] = c & 63 | 128;
+                            } else {
+                                out[p++] = c >> 12 | 224;
+                                out[p++] = c >> 6 & 63 | 128;
+                                out[p++] = c & 63 | 128;
+                            }
+                        }
+                        return out;
+                    }
+                }, {
+                    key: 'signStr',
+                    value: function signStr(key, s) {
+                        var arr = this.stringToUtf8ByteArray(s);
+                        var res = "";
+                        arr.forEach(function (f) {
+                            res += String.fromCharCode(f);
+                        });
+                        return this.b64_hmac_sha12(key, res);
+                    }
+                }, {
+                    key: 'b64_hmac_sha12',
+                    value: function b64_hmac_sha12(k, d, _p, _z) {
                         // heavily optimized and compressed version of http://pajhome.org.uk/crypt/md5/sha1.js
                         // _p = b64pad, _z = character size; not used here but I left them available just in case
                         if (!_p) {
