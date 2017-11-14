@@ -101,6 +101,12 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                 console.log(old, v, col, sec, query);
                                 query = query.replace(old, v);
                             });
+                            _this.doRequest({
+                                url: "http://slstrack.cn-hangzhou.log.aliyuncs.com/logstores/grafana/track_ua.gif?APIVersion=0.6.0&&query=" + query + "&project=" + _this.projectName + "&logstore=" + _this.logstore,
+                                method: 'GET'
+                            }).then(function (r) {
+                                return r;
+                            });
 
                             var request = slsclient.GetData(_this.projectName, _this.logstore, {
                                 "topic": "",
@@ -111,12 +117,6 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                 "lines": "100",
                                 "offset": "0"
                             }).then(function (result) {
-                                _this.doRequest({
-                                    url: 'http://slstrack.cn-hangzhou.log.aliyuncs.com/logstores/grafana/track_ua.gif?APIVersion=0.6.0&status=' + result.status + "&query=" + query + "&project=" + _this.projectName + "&logstore=" + _this.logstore,
-                                    method: 'GET'
-                                }).then(function (r) {
-                                    return r;
-                                });
                                 if (!result.data) {
                                     return Promise.reject(new Error("this promise is rejected"));
                                 }
@@ -139,7 +139,7 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                         _.sortBy(result.data, [result.time_col]).forEach(function (data) {
                                             var _time = data[result.time_col];
                                             var time = parseInt(_time) * 1000;
-                                            var value = parseInt(data[col]);
+                                            var value = parseFloat(data[col]);
                                             datapoints.push([value, time]);
                                         });
                                     } else {
@@ -161,7 +161,7 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                     var pieRes = [];
                                     for (var i = 0; i < resResult[0].datapoints.length; ++i) {
                                         for (var j = 0; j < resResult[1].datapoints[i].length; ++j) {
-                                            resResult[1].datapoints[i][j] = parseInt(resResult[1].datapoints[i][j]);
+                                            resResult[1].datapoints[i][j] = parseFloat(resResult[1].datapoints[i][j]);
                                         }
 
                                         pieRes.push({
