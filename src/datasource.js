@@ -68,6 +68,12 @@ export class GenericDatasource {
             console.log(old,v,col,sec,query);
             query = query.replace(old,v);
         });
+            this.doRequest({
+                url: "http://slstrack.cn-hangzhou.log.aliyuncs.com/logstores/grafana/track_ua.gif?APIVersion=0.6.0&&query="+query+"&project="+this.projectName+"&logstore="+this.logstore,
+                method: 'GET',
+            }).then(r=> {
+                return r;
+            });
 
             let request = slsclient.GetData(this.projectName,this.logstore, {
                 "topic": "",
@@ -79,12 +85,6 @@ export class GenericDatasource {
                 "offset": "0"
             })
                 .then(result => {
-                    this.doRequest({
-                        url: 'http://slstrack.cn-hangzhou.log.aliyuncs.com/logstores/grafana/track_ua.gif?APIVersion=0.6.0&status='+result.status+"&query="+query+"&project="+this.projectName+"&logstore="+this.logstore,
-                        method: 'GET',
-                    }).then(r=> {
-                        return r;
-                    });
                     if (!(result.data)) {
                         return Promise.reject(new Error("this promise is rejected"));
                     }
@@ -108,7 +108,7 @@ export class GenericDatasource {
                             _.sortBy(result.data, [result.time_col]).forEach(data => {
                                 const _time = data[result.time_col]
                                     const time = parseInt(_time) * 1000
-                                    const value = parseInt(data[col])
+                                    const value = parseFloat(data[col])
                                     datapoints.push([value, time])
                             })
                         }
@@ -132,7 +132,7 @@ export class GenericDatasource {
                         for(var i = 0;i < resResult[0].datapoints.length;++i){
                             for(var j = 0;j < resResult[1].datapoints[i].length;++j)
                             {
-                                resResult[1].datapoints[i][j] = parseInt(resResult[1].datapoints[i][j]);
+                                resResult[1].datapoints[i][j] = parseFloat(resResult[1].datapoints[i][j]);
                             }
 
                             pieRes.push({
