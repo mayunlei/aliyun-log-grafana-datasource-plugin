@@ -140,6 +140,7 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                             var _time = data[result.time_col];
                                             var time = parseInt(_time) * 1000;
                                             var value = parseFloat(data[col]);
+                                            if (isNaN(data[col])) value = data[col];
                                             datapoints.push([value, time]);
                                         });
                                     } else {
