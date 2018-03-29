@@ -108,6 +108,9 @@ export class GenericDatasource {
                 })
                 .then(result => {
                     console.log("test",result)
+                    if(result.time_col == "map"){
+                        return result.data;
+                    }
                     let resResult = []
                     _(result.ycol).forEach(col => {
                         let datapoints = []

@@ -139,6 +139,9 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                 return result;
                             }).then(function (result) {
                                 console.log("test", result);
+                                if (result.time_col == "map") {
+                                    return result.data;
+                                }
                                 var resResult = [];
                                 _(result.ycol).forEach(function (col) {
                                     var datapoints = [];
