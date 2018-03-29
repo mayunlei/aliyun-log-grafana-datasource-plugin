@@ -39,7 +39,7 @@ Add a panel, in the datasource option, choose the log service datasource that is
 in the query : insert your query , e.g.
 
 ```
-*|select count(1) as c,count(1)/2 as c1, __time__- __time__%60  as t  group by __time__- __time__%60 limit 10000
+*|select count(1) as c,count(1)/2 as c1, __time__- __time__%60  as t  group by t limit 10000
 ```
 
 the X column ,insert t
