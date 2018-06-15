@@ -145,10 +145,13 @@ export class GenericDatasource {
                             _.sortBy(result.data, [result.time_col]).forEach(data => {
                                 const _time = data[result.time_col]
                                     const time = parseInt(_time) * 1000
+                                    if (data.hasOwnProperty(col))
+                                     {
                                     let value = parseFloat(data[col])
                                     if(isNaN(data[col]))
                                         value = data[col];
                                     datapoints.push([value, time])
+                                     }
                             })
                         }
                         else{
