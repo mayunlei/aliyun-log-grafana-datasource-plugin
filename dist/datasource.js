@@ -171,9 +171,11 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                         _.sortBy(result.data, [result.time_col]).forEach(function (data) {
                                             var _time = data[result.time_col];
                                             var time = parseInt(_time) * 1000;
-                                            var value = parseFloat(data[col]);
-                                            if (isNaN(data[col])) value = data[col];
-                                            datapoints.push([value, time]);
+                                            if (data.hasOwnProperty(col)) {
+                                                var value = parseFloat(data[col]);
+                                                if (isNaN(data[col])) value = data[col];
+                                                datapoints.push([value, time]);
+                                            }
                                         });
                                     } else {
                                         var count = 0;
