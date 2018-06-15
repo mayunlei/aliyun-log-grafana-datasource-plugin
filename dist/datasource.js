@@ -136,6 +136,28 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                     }
                                     return result;
                                 }, []);
+                                if (result.ycol.length == 1 && result.ycol[0].lastIndexOf("#:#") != -1) {
+                                    //group by  this col
+                                    var gbColArr = result.ycol[0].split("#:#");
+
+                                    var gbRes = [];
+                                    var mySet = new Set();
+                                    var lastX = "";
+                                    _(result.data).forEach(function (data) {
+                                        var row = data;
+                                        if (lastX == row[result.time_col]) {
+                                            gbRes[gbRes.length - 1][data[gbColArr[0]]] = data[gbColArr[1]];
+                                        } else {
+                                            row[data[gbColArr[0]]] = data[gbColArr[1]];
+                                            gbRes.push(row);
+                                        }
+                                        lastX = row[result.time_col];
+                                        mySet.add(row[gbColArr[0]]);
+                                    });
+                                    result.data = gbRes;
+                                    result.ycol = Array.from(mySet);
+                                    console.log("rewrite data", result.ycol, result.data);
+                                }
                                 return result;
                             }).then(function (result) {
                                 console.log("test", result);

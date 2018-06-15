@@ -104,6 +104,33 @@ export class GenericDatasource {
                         }
                         return result
                     }, [])
+                    if (result.ycol.length ==1 && result.ycol[0].lastIndexOf("#:#") != -1)
+                    {
+                        //group by  this col
+                        let gbColArr = result.ycol[0].split("#:#");
+                         
+                        let gbRes = []
+                        let mySet = new Set();
+                        let lastX = "";
+                        _(result.data).forEach( data => {
+                                let row = data;
+                                if (lastX == row[result.time_col])
+                                {
+                                    gbRes[gbRes.length-1][data[gbColArr[0]]] = data[gbColArr[1]];
+                                }
+                                else
+                                {
+                                    row [data[gbColArr[0]]] = data[gbColArr[1]];
+                                    gbRes.push(row);
+                                }
+                                lastX = row[result.time_col];
+                                mySet.add(row[gbColArr[0]]);
+                            }
+                        );
+                        result.data = gbRes;
+                        result.ycol = Array.from(mySet);
+                        console.log("rewrite data", result.ycol,result.data);
+                    }
                     return result
                 })
                 .then(result => {
