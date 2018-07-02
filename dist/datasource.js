@@ -308,6 +308,7 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                             "lines": "100",
                             "offset": "0"
                         }).then(this.mapToTextValue);
+                        return request;
                         //result => {
                         //                if (!(result.data)) {
                         //                    return Promise.reject(new Error("this promise is rejected"));
@@ -329,12 +330,10 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                     value: function mapToTextValue(result) {
                         return _.map(result.data, function (d, i) {
                             var x = "";
-                            console.log(d, i);
-                            _(result.data).forEach(function (row) {
-                                _.map(row, function (k, v) {
-                                    if (v != "__time__" && v != "__source__") x = k;
-                                });
+                            _.map(d, function (k, v) {
+                                if (v != "__time__" && v != "__source__") x = k;
                             });
+                            console.log(d, x, i);
                             return { text: x, value: x };
                         });
                     }
