@@ -287,6 +287,7 @@ export class GenericDatasource {
                 "offset": "0"
             })
             .then( this.mapToTextValue);
+        return request;
 //result => {
 //                if (!(result.data)) {
 //                    return Promise.reject(new Error("this promise is rejected"));
@@ -307,13 +308,11 @@ export class GenericDatasource {
     mapToTextValue(result) {
         return _.map(result.data, (d, i) => {
             let x = "";
-            console.log(d,i);
-                _(result.data).forEach(row => {
-                    _.map(row, (k,v) => {
+                    _.map(d, (k,v) => {
                         if(v != "__time__" && v != "__source__")
                             x = k;
                     });
-                });
+            console.log(d,x,i);
             return {text: x, value: x};
         });
     }
