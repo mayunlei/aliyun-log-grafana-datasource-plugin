@@ -3,7 +3,7 @@
 System.register(["lodash", "./sls.js"], function (_export, _context) {
     "use strict";
 
-    var _, SLS, _createClass, GenericDatasource;
+    var _, SLS, _typeof, _createClass, GenericDatasource;
 
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) {
@@ -18,6 +18,12 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
             SLS = _slsJs.SLS;
         }],
         execute: function () {
+            _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
+                return typeof obj;
+            } : function (obj) {
+                return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+            };
+
             _createClass = function () {
                 function defineProperties(target, props) {
                     for (var i = 0; i < props.length; i++) {
@@ -87,7 +93,15 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                             if (target.hide) {
                                 return;
                             }
-                            var query = _this.templateSrv.replace(target.query, {}, 'glob');
+                            var query = _this.templateSrv.replace(target.query, {}, function (value, variable, formatValue) {
+                                console.log(typeof value === "undefined" ? "undefined" : _typeof(value));
+                                if (typeof value === 'string') {
+                                    return value;
+                                }
+                                if (typeof value == "array" || _.isArray(value)) {
+                                    return value.join(' OR ');
+                                }
+                            });
                             var re = /\$([0-9]+)([dmhs])/g;
                             var reArray = query.match(re);
                             _(reArray).forEach(function (col) {

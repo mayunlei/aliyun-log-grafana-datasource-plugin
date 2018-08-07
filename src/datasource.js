@@ -47,7 +47,15 @@ export class GenericDatasource {
             if (target.hide) {
                 return
             }
-        let query = this.templateSrv.replace(target.query, {}, 'glob');
+        let query = this.templateSrv.replace(target.query, {}, function(value,variable, formatValue){
+            console.log(typeof value);
+            if (typeof value === 'string') {
+                return value;
+            }
+            if (typeof value == "array" ||  (_.isArray(value)) ) {
+                return value.join(' OR ')
+            }
+        });
         var re = /\$([0-9]+)([dmhs])/g;
         var reArray = query.match(re);
         _(reArray).forEach(col => {
