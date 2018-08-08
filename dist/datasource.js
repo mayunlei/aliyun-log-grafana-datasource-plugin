@@ -3,7 +3,7 @@
 System.register(["lodash", "./sls.js"], function (_export, _context) {
     "use strict";
 
-    var _, SLS, _createClass, GenericDatasource;
+    var _, SLS, _typeof, _createClass, GenericDatasource;
 
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) {
@@ -18,6 +18,12 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
             SLS = _slsJs.SLS;
         }],
         execute: function () {
+            _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
+                return typeof obj;
+            } : function (obj) {
+                return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+            };
+
             _createClass = function () {
                 function defineProperties(target, props) {
                     for (var i = 0; i < props.length; i++) {
@@ -87,7 +93,15 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                             if (target.hide) {
                                 return;
                             }
-                            var query = _this.templateSrv.replace(target.query, {}, 'glob');
+                            var query = _this.templateSrv.replace(target.query, {}, function (value, variable, formatValue) {
+                                console.log(typeof value === "undefined" ? "undefined" : _typeof(value));
+                                if (typeof value === 'string') {
+                                    return value;
+                                }
+                                if (typeof value == "array" || _.isArray(value)) {
+                                    return value.join(' OR ');
+                                }
+                            });
                             var re = /\$([0-9]+)([dmhs])/g;
                             var reArray = query.match(re);
                             _(reArray).forEach(function (col) {
@@ -101,6 +115,13 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                 console.log(old, v, col, sec, query);
                                 query = query.replace(old, v);
                             });
+                            if (query.indexOf("#time_end") != -1) {
+                                query = query.replace("#time_end", parseInt(options.range.to._d.getTime() / 1000));
+                            }
+                            if (query.indexOf("#time_begin") != -1) {
+                                query = query.replace("#time_begin", parseInt(options.range.from._d.getTime() / 1000));
+                            }
+
                             _this.doRequest({
                                 url: "http://slstrack.cn-hangzhou.log.aliyuncs.com/logstores/grafana/track_ua.gif?APIVersion=0.6.0&&query=" + query + "&project=" + _this.projectName + "&logstore=" + _this.logstore,
                                 method: 'GET'
@@ -129,6 +150,28 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                     }
                                     return result;
                                 }, []);
+                                if (result.ycol.length == 1 && result.ycol[0].lastIndexOf("#:#") != -1) {
+                                    //group by  this col
+                                    var gbColArr = result.ycol[0].split("#:#");
+
+                                    var gbRes = [];
+                                    var mySet = new Set();
+                                    var lastX = "";
+                                    _(result.data).forEach(function (data) {
+                                        var row = data;
+                                        if (lastX == row[result.time_col]) {
+                                            gbRes[gbRes.length - 1][data[gbColArr[0]]] = data[gbColArr[1]];
+                                        } else {
+                                            row[data[gbColArr[0]]] = data[gbColArr[1]];
+                                            gbRes.push(row);
+                                        }
+                                        lastX = row[result.time_col];
+                                        mySet.add(row[gbColArr[0]]);
+                                    });
+                                    result.data = gbRes;
+                                    result.ycol = Array.from(mySet);
+                                    console.log("rewrite data", result.ycol, result.data);
+                                }
                                 return result;
                             }).then(function (result) {
                                 console.log("test", result);
@@ -142,9 +185,11 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                         _.sortBy(result.data, [result.time_col]).forEach(function (data) {
                                             var _time = data[result.time_col];
                                             var time = parseInt(_time) * 1000;
-                                            var value = parseFloat(data[col]);
-                                            if (isNaN(data[col])) value = data[col];
-                                            datapoints.push([value, time]);
+                                            if (data.hasOwnProperty(col)) {
+                                                var value = parseFloat(data[col]);
+                                                if (isNaN(data[col])) value = data[col];
+                                                datapoints.push([value, time]);
+                                            }
                                         });
                                     } else {
                                         var count = 0;
@@ -186,8 +231,11 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                 return e;
                             });
                         })).then(function (requests) {
-                            console.log("1:", requests);
+                            console.log("1:", requests, requests[0]);
 
+                            if (requests && requests[0] && requests[0].data && requests[0].data.errorCode && requests[0].data.errorMessage) {
+                                return { "data": { status: "error", message: requests[0].data.errorMessage, title: "Error1", data: "" } };
+                            }
                             var _t = _.reduce(requests, function (result, data) {
                                 _(data).forEach(function (t) {
                                     return result.push(t);
@@ -221,7 +269,7 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                             "offset": "0"
                         }).then(function (result) {
 
-                            return { status: "success", message: "Database Connection OK", title: "Success" };
+                            return { status: "success", message: "LogService Connection OK", title: "Success" };
                         }, function (err) {
                             console.log("testDataSource err", err);
                             if (err.data && err.data.message) {
@@ -274,6 +322,7 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                             "lines": "100",
                             "offset": "0"
                         }).then(this.mapToTextValue);
+                        return request;
                         //result => {
                         //                if (!(result.data)) {
                         //                    return Promise.reject(new Error("this promise is rejected"));
@@ -295,12 +344,10 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                     value: function mapToTextValue(result) {
                         return _.map(result.data, function (d, i) {
                             var x = "";
-                            console.log(d, i);
-                            _(result.data).forEach(function (row) {
-                                _.map(row, function (k, v) {
-                                    if (v != "__time__" && v != "__source__") x = k;
-                                });
+                            _.map(d, function (k, v) {
+                                if (v != "__time__" && v != "__source__") x = k;
                             });
+                            console.log(d, x, i);
                             return { text: x, value: x };
                         });
                     }

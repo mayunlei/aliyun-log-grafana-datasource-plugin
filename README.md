@@ -47,3 +47,8 @@ the Y column , insert c,c1
 
 save the dashboard
 
+## Contributors
+
+[@WPH95](https://github.com/WPH95) made a great contribution to this project.
+
+Thanks for the excellent work by [@WPH95](https://github.com/WPH95).

@@ -47,7 +47,15 @@ export class GenericDatasource {
             if (target.hide) {
                 return
             }
-        let query = this.templateSrv.replace(target.query, {}, 'glob');
+        let query = this.templateSrv.replace(target.query, {}, function(value,variable, formatValue){
+            console.log(typeof value);
+            if (typeof value === 'string') {
+                return value;
+            }
+            if (typeof value == "array" ||  (_.isArray(value)) ) {
+                return value.join(' OR ')
+            }
+        });
         var re = /\$([0-9]+)([dmhs])/g;
         var reArray = query.match(re);
         _(reArray).forEach(col => {
@@ -68,6 +76,13 @@ export class GenericDatasource {
             console.log(old,v,col,sec,query);
             query = query.replace(old,v);
         });
+            if(query.indexOf("#time_end") != -1){
+                query = query.replace("#time_end",(parseInt(options.range.to._d.getTime() / 1000)));
+            }
+            if(query.indexOf("#time_begin") != -1){
+                query = query.replace("#time_begin",(parseInt(options.range.from._d.getTime() / 1000)));
+            }
+
             this.doRequest({
                 url: "http://slstrack.cn-hangzhou.log.aliyuncs.com/logstores/grafana/track_ua.gif?APIVersion=0.6.0&&query="+query+"&project="+this.projectName+"&logstore="+this.logstore,
                 method: 'GET',
@@ -97,6 +112,33 @@ export class GenericDatasource {
                         }
                         return result
                     }, [])
+                    if (result.ycol.length ==1 && result.ycol[0].lastIndexOf("#:#") != -1)
+                    {
+                        //group by  this col
+                        let gbColArr = result.ycol[0].split("#:#");
+                         
+                        let gbRes = []
+                        let mySet = new Set();
+                        let lastX = "";
+                        _(result.data).forEach( data => {
+                                let row = data;
+                                if (lastX == row[result.time_col])
+                                {
+                                    gbRes[gbRes.length-1][data[gbColArr[0]]] = data[gbColArr[1]];
+                                }
+                                else
+                                {
+                                    row [data[gbColArr[0]]] = data[gbColArr[1]];
+                                    gbRes.push(row);
+                                }
+                                lastX = row[result.time_col];
+                                mySet.add(row[gbColArr[0]]);
+                            }
+                        );
+                        result.data = gbRes;
+                        result.ycol = Array.from(mySet);
+                        console.log("rewrite data", result.ycol,result.data);
+                    }
                     return result
                 })
                 .then(result => {
@@ -111,10 +153,13 @@ export class GenericDatasource {
                             _.sortBy(result.data, [result.time_col]).forEach(data => {
                                 const _time = data[result.time_col]
                                     const time = parseInt(_time) * 1000
+                                    if (data.hasOwnProperty(col))
+                                     {
                                     let value = parseFloat(data[col])
                                     if(isNaN(data[col]))
                                         value = data[col];
                                     datapoints.push([value, time])
+                                     }
                             })
                         }
                         else{
@@ -158,8 +203,11 @@ export class GenericDatasource {
         return Promise.all(requests
             .map(p => p.catch(e => e)))
             .then(requests => {
-                console.log("1:", requests)
+                console.log("1:", requests,requests[0])
 
+                if(requests && requests[0]&& requests[0].data&& requests[0].data.errorCode&& requests[0].data.errorMessage) {
+                    return {"data":{status: "error", message: requests[0].data.errorMessage, title: "Error1",data:""}};
+                }
                 const _t = _.reduce(requests, (result, data) => {
                     _(data).forEach(t => result.push(t))
                     return result
@@ -192,7 +240,7 @@ export class GenericDatasource {
                 "offset": "0"
             }).then(function (result) {
 
-            return {status: "success", message: "Database Connection OK", title: "Success"};
+            return {status: "success", message: "LogService Connection OK", title: "Success"};
         }, function (err) {
             console.log("testDataSource err", err);
             if (err.data && err.data.message) {
@@ -247,6 +295,7 @@ export class GenericDatasource {
                 "offset": "0"
             })
             .then( this.mapToTextValue);
+        return request;
 //result => {
 //                if (!(result.data)) {
 //                    return Promise.reject(new Error("this promise is rejected"));
@@ -267,13 +316,11 @@ export class GenericDatasource {
     mapToTextValue(result) {
         return _.map(result.data, (d, i) => {
             let x = "";
-            console.log(d,i);
-                _(result.data).forEach(row => {
-                    _.map(row, (k,v) => {
+                    _.map(d, (k,v) => {
                         if(v != "__time__" && v != "__source__")
                             x = k;
                     });
-                });
+            console.log(d,x,i);
             return {text: x, value: x};
         });
     }
