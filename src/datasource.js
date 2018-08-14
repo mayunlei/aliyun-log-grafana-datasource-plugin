@@ -52,6 +52,9 @@ export class GenericDatasource {
             if (typeof value === 'string') {
                 return value;
             }
+            if (typeof value == "object" && (variable.multi || variable.includeAll)) {
+                return value.join("','");
+            }
             if (typeof value == "array" ||  (_.isArray(value)) ) {
                 return value.join(' OR ')
             }
