@@ -53,7 +53,11 @@ export class GenericDatasource {
                 return value;
             }
             if (typeof value == "object" && (variable.multi || variable.includeAll)) {
-                return value.join("','");
+                let a = [];
+                value.forEach(v => {
+                    a.push('"'+variable.name+'":"'+v+'"');
+                });
+                return a.join(" OR ");
             }
             if (typeof value == "array" ||  (_.isArray(value)) ) {
                 return value.join(' OR ')

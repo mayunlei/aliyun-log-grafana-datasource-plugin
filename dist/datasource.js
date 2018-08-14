@@ -99,7 +99,11 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                     return value;
                                 }
                                 if ((typeof value === "undefined" ? "undefined" : _typeof(value)) == "object" && (variable.multi || variable.includeAll)) {
-                                    return value.join("','");
+                                    var a = [];
+                                    value.forEach(function (v) {
+                                        a.push('"' + variable.name + '":"' + v + '"');
+                                    });
+                                    return a.join(" OR ");
                                 }
                                 if (typeof value == "array" || _.isArray(value)) {
                                     return value.join(' OR ');
