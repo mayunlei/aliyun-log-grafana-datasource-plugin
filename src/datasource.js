@@ -53,6 +53,23 @@ export class GenericDatasource {
                 return value;
             }
             if (typeof value == "object" && (variable.multi || variable.includeAll)) {
+                let valueN = [];
+                _.map(value,(k,v)=>{
+                  let valueNv = Number(v);
+                  if (typeof valueNv == 'number' && valueNv > 0){
+                    valueN.push(valueNv);
+                  }else{
+                    valueN = [];
+                    return
+                  }
+                })
+                if (valueN.length > 0) {
+                  return value.join(",");
+                }
+
+                if (typeof valueN == 'number' && valueN > 0){
+                    return value.join(",");
+                }
                 return value.join("','");
             }
             if (typeof value == "array" ||  (_.isArray(value)) ) {
