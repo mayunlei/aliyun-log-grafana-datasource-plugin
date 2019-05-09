@@ -47,7 +47,7 @@ export class GenericDatasource {
             if (target.hide) {
                 return
             }
-        let query = this.templateSrv.replace(target.query, {}, function(value,variable, formatValue){
+        let query = this.templateSrv.replace(target.query, options.scopedVars ,function(value,variable, formatValue){
             console.log(typeof value);
             if (typeof value === 'string') {
                 return value;
@@ -55,7 +55,10 @@ export class GenericDatasource {
             if (typeof value == "object" && (variable.multi || variable.includeAll)) {
                 let a = [];
                 value.forEach(v => {
-                    a.push('"'+variable.name+'":"'+v+'"');
+                    if(variable.name == variable.label)
+                        a.push('"'+variable.name+'":"'+v+'"');
+                    else
+                        a.push('"'+v+'"');
                 });
                 return a.join(" OR ");
             }

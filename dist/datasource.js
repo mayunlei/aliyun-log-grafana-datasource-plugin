@@ -93,7 +93,7 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                             if (target.hide) {
                                 return;
                             }
-                            var query = _this.templateSrv.replace(target.query, {}, function (value, variable, formatValue) {
+                            var query = _this.templateSrv.replace(target.query, options.scopedVars, function (value, variable, formatValue) {
                                 console.log(typeof value === "undefined" ? "undefined" : _typeof(value));
                                 if (typeof value === 'string') {
                                     return value;
@@ -101,7 +101,7 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                 if ((typeof value === "undefined" ? "undefined" : _typeof(value)) == "object" && (variable.multi || variable.includeAll)) {
                                     var a = [];
                                     value.forEach(function (v) {
-                                        a.push('"' + variable.name + '":"' + v + '"');
+                                        if (variable.name == variable.label) a.push('"' + variable.name + '":"' + v + '"');else a.push('"' + v + '"');
                                     });
                                     return a.join(" OR ");
                                 }
