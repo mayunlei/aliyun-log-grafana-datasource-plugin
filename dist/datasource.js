@@ -198,12 +198,19 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                                 datapoints.push([value, time]);
                                             }
                                         });
-                                    } else {
+                                    } else if (result.time_col != null && result.time_col == "single") {
                                         var count = 0;
                                         _(result.data).forEach(function (data) {
-                                            var value = data[col];
+                                            var value = parseFloat(data[col]);
                                             datapoints.push([value, 1000 * (parseInt(data["__time__"]) - count)]);
                                             count = count - 1;
+                                        });
+                                    } else {
+                                        var _count = 0;
+                                        _(result.data).forEach(function (data) {
+                                            var value = data[col];
+                                            datapoints.push([value, 1000 * (parseInt(data["__time__"]) - _count)]);
+                                            _count = _count - 1;
                                         });
                                     }
                                     resResult.push({

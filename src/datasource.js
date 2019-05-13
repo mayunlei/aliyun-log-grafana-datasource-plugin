@@ -172,6 +172,16 @@ export class GenericDatasource {
                                      }
                             })
                         }
+                        else if(result.time_col != null && result.time_col=="single")
+                        {
+                            let count = 0;
+                            _(result.data).forEach(data => {
+                                const value = (parseFloat(data[col]));
+                                datapoints.push([value, 1000*(parseInt(data["__time__"])-count)]);
+                                count = count-1;
+                            })
+
+                        }
                         else{
                             let count = 0;
                             _(result.data).forEach(data => {
@@ -185,7 +195,7 @@ export class GenericDatasource {
                             "datapoints": datapoints
                         })
                     })
-                    if(result.time_col == "pie" || result.time_col=='bar'){
+                    if(result.time_col == "pie" || result.time_col=='bar' ){
                         let newtarget =[];
                         let datapoints =[];
                         let pieRes = [];
