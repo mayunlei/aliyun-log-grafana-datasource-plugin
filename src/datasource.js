@@ -154,9 +154,23 @@ export class GenericDatasource {
                 .then(result => {
                     console.log("test",result)
                     if(result.time_col == "map"){
-                        return result.data;
+                        //return result.data;
+                        let columns =  [{
+                            "text": result.ycol[0]
+                        },{
+                            "text": result.ycol[1]
+                        },{
+                            "text": result.ycol[2]
+                        }];
+                        let rows = []
+                        _(result.data).forEach( data => {
+                            rows.push([data[result.ycol[0]],data[result.ycol[1]],data[result.ycol[2]]]);
+                        });
+                        let res = [{columns:columns,rows:rows,"type":"table"}];
+                        console.log("map",res);
+                        return res;
                     }
-                    let resResult = []
+                    let resResult = [];
                     _(result.ycol).forEach(col => {
                         let datapoints = []
                         if(result.time_col != null && result.time_col!= "" && result.time_col != "pie" && result.time_col!='bar'){
@@ -232,7 +246,7 @@ export class GenericDatasource {
                     _(data).forEach(t => result.push(t))
                     return result
                 }, [])
-                console.log("1:", _t)
+                console.log("2:", _t)
                 return {
                     data: _t
                 }

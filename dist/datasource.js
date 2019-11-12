@@ -183,7 +183,21 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                             }).then(function (result) {
                                 console.log("test", result);
                                 if (result.time_col == "map") {
-                                    return result.data;
+                                    //return result.data;
+                                    var columns = [{
+                                        "text": result.ycol[0]
+                                    }, {
+                                        "text": result.ycol[1]
+                                    }, {
+                                        "text": result.ycol[2]
+                                    }];
+                                    var rows = [];
+                                    _(result.data).forEach(function (data) {
+                                        rows.push([data[result.ycol[0]], data[result.ycol[1]], data[result.ycol[2]]]);
+                                    });
+                                    var res = [{ columns: columns, rows: rows, "type": "table" }];
+                                    console.log("map", res);
+                                    return res;
                                 }
                                 var resResult = [];
                                 _(result.ycol).forEach(function (col) {
@@ -256,7 +270,7 @@ System.register(["lodash", "./sls.js"], function (_export, _context) {
                                 });
                                 return result;
                             }, []);
-                            console.log("1:", _t);
+                            console.log("2:", _t);
                             return {
                                 data: _t
                             };
