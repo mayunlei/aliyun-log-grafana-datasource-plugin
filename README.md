@@ -57,7 +57,7 @@ configuration of log service :
 
 configuration of worldmap penel(please specify Map Data Options):
 
-![](http://logdemo.oss-cn-beijing.aliyuncs.com/worldmap1.png)
+![](http://logdemo.oss-cn-beijing.aliyuncs.com/worldmap2.png)
 
 ## Contributors
 
