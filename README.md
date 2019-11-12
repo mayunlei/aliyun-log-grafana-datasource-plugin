@@ -47,6 +47,18 @@ the Y column , insert c,c1
 
 save the dashboard
 
+## Usage
+
+### world map penel
+
+configuration of log service :
+
+![](http://logdemo.oss-cn-beijing.aliyuncs.com/worldmap1.png)
+
+configuration of worldmap penel(please specify Map Data Options):
+
+![](http://logdemo.oss-cn-beijing.aliyuncs.com/worldmap1.png)
+
 ## Contributors
 
 [@WPH95](https://github.com/WPH95) made a great contribution to this project.
