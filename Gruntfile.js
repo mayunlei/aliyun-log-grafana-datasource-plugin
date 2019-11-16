@@ -52,7 +52,7 @@ module.exports = function(grunt) {
         files: [{
           cwd: 'src',
           expand: true,
-          src: ['**/*.js','!aliyun-sdk.js'],
+          src: ['**/*.js'],
           dest: 'dist/test',
           ext:'.js'
         }]
@@ -78,5 +78,6 @@ module.exports = function(grunt) {
     }
   });
 
-  grunt.registerTask('default', ['clean', 'copy:src_to_dist', 'copy:pluginDef', 'babel', 'mochaTest']);
+  //grunt.registerTask('default', ['clean', 'copy:src_to_dist', 'copy:pluginDef', 'babel', 'mochaTest']);
+  grunt.registerTask('default', ['clean', 'copy:src_to_dist', 'copy:pluginDef', 'babel']);
 };
