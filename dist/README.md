@@ -20,7 +20,7 @@ brew services start grafana
 
 in datasource management panel, add a datasource with the type "LogService"
 
-in Http settings, set Url = http://${Project}.${log\_service\_endpoint} . e.g. Your projectName is accesslog in qingdao region, then the url is http://accesslog.cn-qingdao.log.aliyuncs.com
+in Http settings, set Url = http://${log\_service\_endpoint} . e.g. Your projectName is accesslog in qingdao region, then the url is http://cn-qingdao.log.aliyuncs.com
 
 Access : select "proxy"
 
@@ -46,6 +46,18 @@ the X column ,insert t
 the Y column , insert c,c1
 
 save the dashboard
+
+## Usage
+
+### world map penel
+
+configuration of log service :
+
+![](http://logdemo.oss-cn-beijing.aliyuncs.com/worldmap1.png)
+
+configuration of worldmap penel(please specify Map Data Options):
+
+![](http://logdemo.oss-cn-beijing.aliyuncs.com/worldmap2.png)
 
 ## Contributors
 
