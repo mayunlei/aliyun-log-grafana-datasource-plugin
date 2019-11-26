@@ -36,7 +36,7 @@ func (ds *SlsDatasource) Query(ctx context.Context, tsdbReq *datasource.Datasour
 
 	queries := tsdbReq.Queries
 
-	results := []*datasource.QueryResult{}
+	var results []*datasource.QueryResult
 
 	for _, query := range queries {
 		modelJson := query.ModelJson
@@ -70,6 +70,9 @@ func (ds *SlsDatasource) Query(ctx context.Context, tsdbReq *datasource.Datasour
 				for _, alog := range logs {
 					var timestamp int64
 					var value float64
+					if xcol == "pie" {
+						timestamp = 0
+					}
 					for k, v := range alog {
 						if k == xcol {
 							floatV, err := strconv.ParseFloat(v, 10)
@@ -130,7 +133,6 @@ func (ds *SlsDatasource) Query(ctx context.Context, tsdbReq *datasource.Datasour
 			}
 			tables = append(tables, table)
 		}
-
 		queryResult := &datasource.QueryResult{
 			RefId:  query.RefId,
 			Series: series,
@@ -138,7 +140,6 @@ func (ds *SlsDatasource) Query(ctx context.Context, tsdbReq *datasource.Datasour
 		}
 		results = append(results, queryResult)
 	}
-
 	rt := &datasource.DatasourceResponse{
 		Results: results,
 	}
