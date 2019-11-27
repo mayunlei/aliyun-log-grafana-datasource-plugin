@@ -3,7 +3,7 @@
 System.register(['lodash'], function (_export, _context) {
     "use strict";
 
-    var _, _createClass, GenericDatasource;
+    var _, _typeof, _createClass, GenericDatasource;
 
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) {
@@ -49,6 +49,12 @@ System.register(['lodash'], function (_export, _context) {
             _ = _lodash.default;
         }],
         execute: function () {
+            _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
+                return typeof obj;
+            } : function (obj) {
+                return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+            };
+
             _createClass = function () {
                 function defineProperties(target, props) {
                     for (var i = 0; i < props.length; i++) {
@@ -110,7 +116,7 @@ System.register(['lodash'], function (_export, _context) {
                             } else {
                                 return { status: "failed", message: "Data source is not working", title: "Error" };
                             }
-                        }).catch(function (error) {
+                        }).catch(function () {
                             return { status: "failed", message: "Data source is not working", title: "Error" };
                         });
                     }
@@ -188,7 +194,7 @@ System.register(['lodash'], function (_export, _context) {
                         options.targets = _.filter(options.targets, function (target) {
                             return target.target !== 'select metric';
                         });
-                        var targets = _.map(options.targets, function (target) {
+                        options.targets = _.map(options.targets, function (target) {
                             return {
                                 queryType: 'query',
                                 target: _this.templateSrv.replace(target.target, options.scopedVars, 'regex'),
@@ -196,20 +202,56 @@ System.register(['lodash'], function (_export, _context) {
                                 hide: target.hide,
                                 type: target.type || 'timeserie',
                                 datasourceId: _this.id,
-                                query: target.query,
+                                query: _this.replaceQueryParameters(target, options),
                                 xcol: target.xcol,
                                 ycol: target.ycol
                             };
                         });
-                        options.targets = targets;
                         return options;
+                    }
+                }, {
+                    key: 'replaceQueryParameters',
+                    value: function replaceQueryParameters(target, options) {
+                        var query = this.templateSrv.replace(target.query, options.scopedVars, function (value, variable) {
+                            if ((typeof value === 'undefined' ? 'undefined' : _typeof(value)) == "object" && (variable.multi || variable.includeAll)) {
+                                var a = [];
+                                value.forEach(function (v) {
+                                    if (variable.name == variable.label) a.push('"' + variable.name + '":"' + v + '"');else a.push('"' + v + '"');
+                                });
+                                return a.join(" OR ");
+                            }
+                            if (_.isArray(value)) {
+                                return value.join(' OR ');
+                            }
+                            return value;
+                        });
+                        var re = /\$([0-9]+)([dmhs])/g;
+                        var reArray = query.match(re);
+                        _(reArray).forEach(function (col) {
+                            var old = col;
+                            col = col.replace("$", '');
+                            var sec = 1;
+                            if (col.indexOf("s") != -1) sec = 1;else if (col.indexOf("m") != -1) sec = 60;else if (col.indexOf("h") != -1) sec = 3600;else if (col.indexOf("d") != -1) sec = 3600 * 24;
+                            col = col.replace(/[smhd]/g, '');
+                            var v = parseInt(col);
+                            v = v * sec;
+                            console.log(old, v, col, sec, query);
+                            query = query.replace(old, v);
+                        });
+                        if (query.indexOf("#time_end") != -1) {
+                            query = query.replace("#time_end", parseInt(String(options.range.to._d.getTime() / 1000)));
+                        }
+                        if (query.indexOf("#time_begin") != -1) {
+                            query = query.replace("#time_begin", parseInt(String(options.range.from._d.getTime() / 1000)));
+                        }
+                        return query;
                     }
                 }, {
                     key: 'getTagKeys',
                     value: function getTagKeys(options) {
                         var _this2 = this;
 
-                        return new Promise(function (resolve, reject) {
+                        return new Promise(function (resolve) {
                             _this2.doRequest({
                                 url: _this2.url + '/tag-keys',
                                 method: 'POST',
@@ -224,7 +266,7 @@ System.register(['lodash'], function (_export, _context) {
                     value: function getTagValues(options) {
                         var _this3 = this;
 
-                        return new Promise(function (resolve, reject) {
+                        return new Promise(function (resolve) {
                             _this3.doRequest({
                                 url: _this3.url + '/tag-values',
                                 method: 'POST',
