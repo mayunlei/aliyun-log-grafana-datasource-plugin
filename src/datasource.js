@@ -36,7 +36,7 @@ export class GenericDatasource {
             else {
                 return { status: "failed", message: "Data source is not working", title: "Error" };
             }
-        }).catch(error => {
+        }).catch(() => {
             return { status: "failed", message: "Data source is not working", title: "Error" };
         });
     }
@@ -103,7 +103,7 @@ export class GenericDatasource {
         options.targets = _.filter(options.targets, target => {
             return target.target !== 'select metric';
         });
-        const targets = _.map(options.targets, target => {
+        options.targets = _.map(options.targets, target => {
             return {
                 queryType: 'query',
                 target: this.templateSrv.replace(target.target, options.scopedVars, 'regex'),
@@ -111,16 +111,60 @@ export class GenericDatasource {
                 hide: target.hide,
                 type: target.type || 'timeserie',
                 datasourceId: this.id,
-                query: target.query,
+                query: this.replaceQueryParameters(target, options),
                 xcol: target.xcol,
                 ycol: target.ycol
             };
         });
-        options.targets = targets;
         return options;
     }
+    replaceQueryParameters(target, options) {
+        let query = this.templateSrv.replace(target.query, options.scopedVars, function (value, variable) {
+            if (typeof value == "object" && (variable.multi || variable.includeAll)) {
+                const a = [];
+                value.forEach(function (v) {
+                    if (variable.name == variable.label)
+                        a.push('"' + variable.name + '":"' + v + '"');
+                    else
+                        a.push('"' + v + '"');
+                });
+                return a.join(" OR ");
+            }
+            if (_.isArray(value)) {
+                return value.join(' OR ');
+            }
+            return value;
+        });
+        const re = /\$([0-9]+)([dmhs])/g;
+        const reArray = query.match(re);
+        _(reArray).forEach(function (col) {
+            const old = col;
+            col = col.replace("$", '');
+            let sec = 1;
+            if (col.indexOf("s") != -1)
+                sec = 1;
+            else if (col.indexOf("m") != -1)
+                sec = 60;
+            else if (col.indexOf("h") != -1)
+                sec = 3600;
+            else if (col.indexOf("d") != -1)
+                sec = 3600 * 24;
+            col = col.replace(/[smhd]/g, '');
+            let v = parseInt(col);
+            v = v * sec;
+            console.log(old, v, col, sec, query);
+            query = query.replace(old, v);
+        });
+        if (query.indexOf("#time_end") != -1) {
+            query = query.replace("#time_end", parseInt(String(options.range.to._d.getTime() / 1000)));
+        }
+        if (query.indexOf("#time_begin") != -1) {
+            query = query.replace("#time_begin", parseInt(String(options.range.from._d.getTime() / 1000)));
+        }
+        return query;
+    }
     getTagKeys(options) {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             this.doRequest({
                 url: this.url + '/tag-keys',
                 method: 'POST',
@@ -131,7 +175,7 @@ export class GenericDatasource {
         });
     }
     getTagValues(options) {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             this.doRequest({
                 url: this.url + '/tag-values',
                 method: 'POST',
