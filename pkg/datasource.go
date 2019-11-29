@@ -61,18 +61,45 @@ func (ds *SlsDatasource) Query(ctx context.Context, tsdbReq *datasource.Datasour
 
 		var series []*datasource.TimeSeries
 		var tables []*datasource.Table
-
 		xcol := queryInfo.Xcol
+
 		ycols := strings.Split(queryInfo.Ycol, ",")
-		if xcol != "" && xcol != "map" {
+		if xcol == "pie" {
+			rt := &datasource.DatasourceResponse{}
+			if len(ycols) < 2 {
+				return rt, nil
+			}
+			for _, alog := range logs {
+				floatV, err := strconv.ParseFloat(alog[ycols[1]], 10)
+				if err != nil {
+					ds.logger.Error("", err)
+					return nil, err
+				}
+				point := &datasource.Point{
+					Timestamp: 0,
+					Value:     floatV,
+				}
+				var points []*datasource.Point
+				points = append(points, point)
+				timeSeries := &datasource.TimeSeries{
+					Name:   alog[ycols[0]],
+					Points: points,
+				}
+				series = append(series, timeSeries)
+
+			}
+			queryResult := &datasource.QueryResult{
+				RefId:  "",
+				Series: series,
+			}
+			rt.Results = append(results, queryResult)
+			return rt, nil
+		} else if xcol != "" && xcol != "map" && xcol != "pie" && xcol != "bar" && xcol != "table" {
 			for _, ycol := range ycols {
 				var points []*datasource.Point
 				for _, alog := range logs {
 					var timestamp int64
 					var value float64
-					if xcol == "pie" {
-						timestamp = 0
-					}
 					for k, v := range alog {
 						if k == xcol {
 							floatV, err := strconv.ParseFloat(v, 10)
@@ -118,10 +145,7 @@ func (ds *SlsDatasource) Query(ctx context.Context, tsdbReq *datasource.Datasour
 				for _, ycol := range ycols {
 					for k, v := range alog {
 						if k == ycol {
-							value := &datasource.RowValue{}
-							value.StringValue = v
-							value.Kind = datasource.RowValue_TYPE_STRING
-							values = append(values, value)
+							values = append(values, ds.GetValue(v))
 						}
 					}
 				}
@@ -133,6 +157,7 @@ func (ds *SlsDatasource) Query(ctx context.Context, tsdbReq *datasource.Datasour
 			}
 			tables = append(tables, table)
 		}
+
 		queryResult := &datasource.QueryResult{
 			RefId:  query.RefId,
 			Series: series,
@@ -145,4 +170,23 @@ func (ds *SlsDatasource) Query(ctx context.Context, tsdbReq *datasource.Datasour
 	}
 
 	return rt, nil
+}
+
+func (ds *SlsDatasource) GetValue(v string) *datasource.RowValue {
+	value := &datasource.RowValue{}
+	intValue, err := strconv.ParseInt(v, 10, 10)
+	if err == nil {
+		value.Int64Value = intValue
+		value.Kind = datasource.RowValue_TYPE_INT64
+	} else {
+		floatValue, err := strconv.ParseFloat(v, 10)
+		if err == nil {
+			value.DoubleValue = floatValue
+			value.Kind = datasource.RowValue_TYPE_DOUBLE
+		} else {
+			value.StringValue = v
+			value.Kind = datasource.RowValue_TYPE_STRING
+		}
+	}
+	return value
 }
