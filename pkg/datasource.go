@@ -62,9 +62,60 @@ func (ds *SlsDatasource) Query(ctx context.Context, tsdbReq *datasource.Datasour
 		var series []*datasource.TimeSeries
 		var tables []*datasource.Table
 		xcol := queryInfo.Xcol
+		var ycols []string
+		isFlowGraph := strings.Contains(queryInfo.Ycol, "#:#")
+		if isFlowGraph {
+			ycols = strings.Split(queryInfo.Ycol, "#:#")
+		} else {
+			ycols = strings.Split(queryInfo.Ycol, ",")
+		}
+		if isFlowGraph {
+			rt := &datasource.DatasourceResponse{}
+			if len(ycols) < 2 {
+				return rt, nil
+			}
+			var set map[string]bool
+			set = make(map[string]bool)
+			for _, alog := range logs {
+				set[alog[ycols[0]]] = true
+			}
+			for flowId := range set {
+				var points []*datasource.Point
+				for _, alog := range logs {
+					if flowId == alog[ycols[0]] {
+						floatV, err := strconv.ParseFloat(alog[ycols[1]], 10)
+						if err != nil {
+							ds.logger.Error("", err)
+							return nil, err
+						}
+						floatV1, err := strconv.ParseFloat(alog[xcol], 10)
+						if err != nil {
+							ds.logger.Error("", err)
+							return nil, err
+						}
+						int64V := int64(floatV1)
+						point := &datasource.Point{
+							Timestamp: int64V * 1000,
+							Value:     floatV,
+						}
+						points = append(points, point)
+					}
+				}
+				timeSeries := &datasource.TimeSeries{
+					Name:   flowId,
+					Points: points,
+				}
+				series = append(series, timeSeries)
 
-		ycols := strings.Split(queryInfo.Ycol, ",")
-		if xcol == "pie" {
+			}
+			queryResult := &datasource.QueryResult{
+				RefId:  query.RefId,
+				Series: series,
+			}
+			results = append(results, queryResult)
+			rt.Results = results
+			return rt, nil
+		} else if xcol == "pie" {
 			rt := &datasource.DatasourceResponse{}
 			if len(ycols) < 2 {
 				return rt, nil
@@ -89,7 +140,7 @@ func (ds *SlsDatasource) Query(ctx context.Context, tsdbReq *datasource.Datasour
 
 			}
 			queryResult := &datasource.QueryResult{
-				RefId:  "",
+				RefId:  query.RefId,
 				Series: series,
 			}
 			rt.Results = append(results, queryResult)
