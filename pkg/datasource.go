@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	sls "github.com/aliyun/aliyun-log-go-sdk"
 	"github.com/grafana/grafana_plugin_model/go/datasource"
 	"github.com/hashicorp/go-hclog"
@@ -29,10 +30,24 @@ func (ds *SlsDatasource) Query(ctx context.Context, tsdbReq *datasource.Datasour
 		return nil, err
 	}
 
+	accessKeyId := tsdbReq.Datasource.DecryptedSecureJsonData["accessKeyId"]
+	if len(accessKeyId) == 0 {
+		err = errors.New("AccessKeyID cannot be null")
+		ds.logger.Error("", err)
+		return nil, err
+	}
+
+	accessKeySecret := tsdbReq.Datasource.DecryptedSecureJsonData["accessKeySecret"]
+	if len(accessKeySecret) == 0 {
+		err = errors.New("AccessKeySecret cannot be null")
+		ds.logger.Error("", err)
+		return nil, err
+	}
+
 	client := &sls.Client{
 		Endpoint:        tsdbReq.Datasource.Url,
-		AccessKeyID:     logSource.User,
-		AccessKeySecret: logSource.Password,
+		AccessKeyID:     accessKeyId,
+		AccessKeySecret: accessKeySecret,
 	}
 
 	queries := tsdbReq.Queries
@@ -220,7 +235,6 @@ func (ds *SlsDatasource) Query(ctx context.Context, tsdbReq *datasource.Datasour
 	rt := &datasource.DatasourceResponse{
 		Results: results,
 	}
-
 	return rt, nil
 }
 
