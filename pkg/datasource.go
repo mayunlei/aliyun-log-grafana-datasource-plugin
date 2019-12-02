@@ -2,11 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	sls "github.com/aliyun/aliyun-log-go-sdk"
 	"github.com/grafana/grafana_plugin_model/go/datasource"
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-plugin"
 	"golang.org/x/net/context"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -24,14 +26,28 @@ func (ds *SlsDatasource) Query(ctx context.Context, tsdbReq *datasource.Datasour
 
 	err := json.Unmarshal([]byte(tsdbReq.Datasource.JsonData), &logSource)
 	if err != nil {
+		ds.logger.Error("Unmarshal logSource", err)
+		return nil, err
+	}
+
+	accessKeyId := tsdbReq.Datasource.DecryptedSecureJsonData["accessKeyId"]
+	if len(accessKeyId) == 0 {
+		err = errors.New("AccessKeyID cannot be null")
+		ds.logger.Error("", err)
+		return nil, err
+	}
+
+	accessKeySecret := tsdbReq.Datasource.DecryptedSecureJsonData["accessKeySecret"]
+	if len(accessKeySecret) == 0 {
+		err = errors.New("AccessKeySecret cannot be null")
 		ds.logger.Error("", err)
 		return nil, err
 	}
 
 	client := &sls.Client{
 		Endpoint:        tsdbReq.Datasource.Url,
-		AccessKeyID:     logSource.User,
-		AccessKeySecret: logSource.Password,
+		AccessKeyID:     accessKeyId,
+		AccessKeySecret: accessKeySecret,
 	}
 
 	queries := tsdbReq.Queries
@@ -44,14 +60,14 @@ func (ds *SlsDatasource) Query(ctx context.Context, tsdbReq *datasource.Datasour
 		queryInfo := &QueryInfo{}
 		err = json.Unmarshal([]byte(modelJson), &queryInfo)
 		if err != nil {
-			ds.logger.Error("", err)
+			ds.logger.Error("Unmarshal queryInfo", err)
 			return nil, err
 		}
 
 		getLogsResp, err := client.GetLogs(logSource.Project, logSource.LogStore, "",
 			tsdbReq.TimeRange.FromEpochMs/1000, tsdbReq.TimeRange.ToEpochMs/1000, queryInfo.Query, 0, 0, true)
 		if err != nil {
-			ds.logger.Error("", err)
+			ds.logger.Error("GetLogs", err)
 			return nil, err
 		}
 
@@ -70,6 +86,7 @@ func (ds *SlsDatasource) Query(ctx context.Context, tsdbReq *datasource.Datasour
 			ycols = strings.Split(queryInfo.Ycol, ",")
 		}
 		if isFlowGraph {
+			ds.SortLogs(logs, xcol)
 			rt := &datasource.DatasourceResponse{}
 			if len(ycols) < 2 {
 				return rt, nil
@@ -85,12 +102,12 @@ func (ds *SlsDatasource) Query(ctx context.Context, tsdbReq *datasource.Datasour
 					if flowId == alog[ycols[0]] {
 						floatV, err := strconv.ParseFloat(alog[ycols[1]], 10)
 						if err != nil {
-							ds.logger.Error("", err)
+							ds.logger.Error("ParseFloat flowGraph", err)
 							return nil, err
 						}
 						floatV1, err := strconv.ParseFloat(alog[xcol], 10)
 						if err != nil {
-							ds.logger.Error("", err)
+							ds.logger.Error("ParseFloat flowGraph", err)
 							return nil, err
 						}
 						int64V := int64(floatV1)
@@ -123,7 +140,7 @@ func (ds *SlsDatasource) Query(ctx context.Context, tsdbReq *datasource.Datasour
 			for _, alog := range logs {
 				floatV, err := strconv.ParseFloat(alog[ycols[1]], 10)
 				if err != nil {
-					ds.logger.Error("", err)
+					ds.logger.Error("ParseFloat pie", err)
 					return nil, err
 				}
 				point := &datasource.Point{
@@ -146,6 +163,7 @@ func (ds *SlsDatasource) Query(ctx context.Context, tsdbReq *datasource.Datasour
 			rt.Results = append(results, queryResult)
 			return rt, nil
 		} else if xcol != "" && xcol != "map" && xcol != "pie" && xcol != "bar" && xcol != "table" {
+			ds.SortLogs(logs, xcol)
 			for _, ycol := range ycols {
 				var points []*datasource.Point
 				for _, alog := range logs {
@@ -153,18 +171,16 @@ func (ds *SlsDatasource) Query(ctx context.Context, tsdbReq *datasource.Datasour
 					var value float64
 					for k, v := range alog {
 						if k == xcol {
-							floatV, err := strconv.ParseFloat(v, 10)
+							timestamp, err = ds.ParseTimestamp(v)
 							if err != nil {
-								ds.logger.Error("", err)
+								ds.logger.Error("ParseTimestamp xcol", err)
 								return nil, err
 							}
-							int64V := int64(floatV)
-							timestamp = int64V * 1000
 						}
 						if k == ycol {
 							floatV, err := strconv.ParseFloat(v, 10)
 							if err != nil {
-								ds.logger.Error("", err)
+								ds.logger.Error("ParseFloat ycol", err)
 								return nil, err
 							}
 							value = floatV
@@ -219,7 +235,6 @@ func (ds *SlsDatasource) Query(ctx context.Context, tsdbReq *datasource.Datasour
 	rt := &datasource.DatasourceResponse{
 		Results: results,
 	}
-
 	return rt, nil
 }
 
@@ -240,4 +255,30 @@ func (ds *SlsDatasource) GetValue(v string) *datasource.RowValue {
 		}
 	}
 	return value
+}
+
+func (ds *SlsDatasource) ParseTimestamp(v string) (int64, error) {
+	floatV, err := strconv.ParseFloat(v, 10)
+	if err != nil {
+		return 0, err
+	}
+	int64V := int64(floatV)
+	return int64V * 1000, nil
+}
+
+func (ds *SlsDatasource) SortLogs(logs []map[string]string, xcol string) {
+	sort.Slice(logs, func(i, j int) bool {
+		timestamp1, err := ds.ParseTimestamp(logs[i][xcol])
+		if err != nil {
+			ds.logger.Error("SortLogs1", err)
+		}
+		timestamp2, err := ds.ParseTimestamp(logs[j][xcol])
+		if err != nil {
+			ds.logger.Error("SortLogs2", err)
+		}
+		if timestamp1 < timestamp2 {
+			return true
+		}
+		return false
+	})
 }
