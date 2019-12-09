@@ -9,27 +9,36 @@
 
   "metrics": true,
   "annotations": true,
+  "backend": true,
+  "alerting": true,
+  "executable": "aliyun-log-plugin",
 
   "info": {
-    "description": "plugin for aliyun log service",
+    "description": "aliyun log datasource",
     "author": {
       "name": "aliyun log service dev",
       "url": "https://aliyun.com/product/sls"
     },
     "logos": {
-      "small": "img/simpleJson_logo.svg",
-      "large": "img/simpleJson_logo.svg"
+      "small": "img/sls_logo.jpg",
+      "large": "img/sls_logo.jpg"
     },
     "links": [
-      {"name": "GitHub", "url": "https://github.com/grafana/simple-json-datasource"},
-      {"name": "MIT License", "url": "https://github.com/grafana/simple-json-datasource/blob/master/LICENSE"}
+      {
+        "name": "GitHub",
+        "url": "https://github.com/grafana/simple-json-backend-datasource"
+      },
+      {
+        "name": "MIT License",
+        "url": "https://github.com/grafana/simple-json-backend-datasource/blob/master/LICENSE"
+      }
     ],
-    "version": "1.3.4",
-    "updated": "2017-05-10"
+    "version": "1.0.0",
+    "updated": "2019-11-09"
   },
 
   "dependencies": {
-    "grafanaVersion": "3.x.x",
-    "plugins": [ ]
+    "grafanaVersion": "6.x.x",
+    "plugins": []
   }
 }
