@@ -10,11 +10,11 @@ More documentation about datasource plugins can be found in the [Docs](https://g
 ## Install 
 
 
-clone this project into grafana plugin directory , then restart grafana
+Clone this project into grafana plugin directory , then restart grafana.
 
-in mac the plugin directory is /usr/local/var/lib/grafana/plugins
+In mac the plugin directory is /usr/local/var/lib/grafana/plugins.
 
-after install the plugin ,restart grafana 
+After install the plugin ,restart grafana
 
 ```
 brew services start grafana
@@ -22,9 +22,9 @@ brew services start grafana
 
 ## Add datasource
 
-in datasource management panel, add a datasource with the type "LogService"
+In datasource management panel, add a datasource with the type "LogService".
 
-in Http settings, set Url = http://${log\_service\_endpoint} . e.g. Your projectName is accesslog in qingdao region, then the url is http://cn-qingdao.log.aliyuncs.com
+In Http settings, set Url = http://${log\_service\_endpoint} . e.g. Your projectName is accesslog in qingdao region, then the url is http://cn-qingdao.log.aliyuncs.com.
 
 Access : select `Server(Default)`
 
@@ -32,7 +32,7 @@ log service details:
 
 set Project and logstore
 
-AccessId and AccessKey : it is better to use a sub user accessId and accessKey
+AccessId and AccessKey : it is better to use a sub user accessId and accessKey.
 
 
 ## Add dashboard
@@ -40,23 +40,23 @@ AccessId and AccessKey : it is better to use a sub user accessId and accessKey
 
 Add a panel, in the datasource option, choose the log service datasource that is just created.
 
-in the query : insert your query , e.g.
+In the query : insert your query , e.g.
 
 ```
 *|select count(1) as c,count(1)/2 as c1, __time__- __time__%60  as t  group by t limit 10000
 ```
 
-the X column ,insert t (**Second timestamp**)
+The X column ,insert t (**Second timestamp**)
 
-the Y column , insert c,c1 (**Multiple columns are separated by commas**)
+The Y column , insert c,c1 (**Multiple columns are separated by commas**)
 
-save the dashboard
+Save the dashboard
 
 ## Usage
 
 ### Variables
 
-In the top right corner of the dashboard panel, click dashboard Settings and select Variables
+In the top right corner of the dashboard panel, click dashboard Settings and select Variables.
 
 Reference variables `$VariableName`
 
@@ -107,7 +107,7 @@ Location Data : `geohash`
 
 Location Name Field : `country`
 
-geo_point/geohash Field :" `geo`
+Geo_point/Geohash Field :" `geo`
 
 Metric Field : `pv`
 
@@ -137,11 +137,11 @@ Add the alert panel:
 
 ![](/img/demo4.png)
 
-- The red line on the chart represents the set threshold. Click on the right side and drag it up and down
-- Evaluate every `1m` for `5m`, Is the result calculated every minute, and the threshold is exceeded for five consecutive minutes
-- After setting for, if the state exceeds the threshold value and changes from Ok to Pending, the alarm will not be triggered. After continuously exceeding the threshold value for a period of time, the alarm will be sent. If the state changes from Pending to Alerting, the alarm will only be notified once
-- WHEN `avg ()` OF `query (B, 5m, now)` IS ABOVE `89`, That means line B has an average of more than 89 alarms in the last five minutes
-- Add notification mode and notification information under Notifications
+- The red line on the chart represents the set threshold. Click on the right side and drag it up and down.
+- Evaluate every `1m` for `5m`, Is the result calculated every minute, and the threshold is exceeded for five consecutive minutes.
+- After setting for, if the state exceeds the threshold value and changes from Ok to Pending, the alarm will not be triggered. After continuously exceeding the threshold value for a period of time, the alarm will be sent. If the state changes from Pending to Alerting, the alarm will only be notified once.
+- WHEN `avg ()` OF `query (B, 5m, now)` IS ABOVE `89`, That means line B has an average of more than 89 alarms in the last five minutes.
+- Add notification mode and notification information under Notifications.
 
 
 ## Contributors
