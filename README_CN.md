@@ -4,7 +4,7 @@
 ## 安装 
 
 
-克隆本插件到grafana插件目录下 , 然后重启grafana
+克隆本项目到grafana插件目录下 , 然后重启grafana
 
 在 mac 插件目录是 /usr/local/var/lib/grafana/plugins
 
@@ -41,9 +41,9 @@ Access 设置为 `Server(Default)`
 *|select count(1) as c,count(1)/2 as c1, __time__- __time__%60  as t  group by t limit 10000
 ```
 
-X轴设置为`t` (秒级时间戳)
+X轴设置为`t` (**秒级时间戳**)
 
-Y轴设置为`c,c1`
+Y轴设置为`c,c1` (**多列用逗号分隔**)
 
 保存仪表盘
 
@@ -59,7 +59,7 @@ Y轴设置为`c,c1`
 
 X轴 设置为时间列
 
-Y轴 设置为 `col1#:#col2` 这种格式, 其中 col1 为 group by 的列, col2 为其他聚合列
+Y轴 设置为 `col1#:#col2` 这种格式, 其中 col1 为 聚合列, col2 为其他列
 
 Query 设置样例为  
 ```
