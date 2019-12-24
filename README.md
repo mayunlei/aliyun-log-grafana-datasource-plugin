@@ -34,6 +34,8 @@ set Project and logstore
 
 AccessId and AccessKey : it is better to use a sub user accessId and accessKey.
 
+To ensure data security, AK is saved and cleared without echo
+
 
 ## Add dashboard
 
