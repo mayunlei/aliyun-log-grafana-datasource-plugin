@@ -146,6 +146,7 @@ System.register(['lodash'], function (_export, _context) {
                 }, {
                     key: 'metricFindQuery',
                     value: function metricFindQuery(q) {
+                        q = this.templateSrv.replace(q, {}, 'glob');
                         var to = new Date().getTime();
                         var from = to - 86400;
                         var str = '{"requestId":"Q100","timezone":"","range":{"from":"' + from + '","to":"' + to + '"},' + '"targets":[{"queryType":"query","target":"query","refId":"A","type":"timeserie","datasourceId":' + this.id + ',' + '"query":"' + q + '"}]}';
