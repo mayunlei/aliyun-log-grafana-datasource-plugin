@@ -41,8 +41,8 @@ export class GenericDatasource {
         });
     }
     annotationQuery(options) {
-        var query = this.templateSrv.replace(options.annotation.query, {}, 'glob');
-        var annotationQuery = {
+        const query = this.templateSrv.replace(options.annotation.query, {}, 'glob');
+        const annotationQuery = {
             range: options.range,
             annotation: {
                 name: options.annotation.name,
@@ -61,18 +61,19 @@ export class GenericDatasource {
             return result.data;
         });
     }
-    metricFindQuery(query) {
-        const interpolated = {
-            target: this.templateSrv.replace(query, null, 'regex'),
-            datasourceId: this.id,
-            queryType: "search"
-        };
-        return this.doTsdbRequest({
-            targets: [interpolated]
-        }).then(response => {
+    metricFindQuery(q) {
+        const to = new Date().getTime();
+        const from = to - 86400;
+        const str = '{"requestId":"Q100","timezone":"","range":{"from":"' + from + '","to":"' + to + '"},' +
+            '"targets":[{"queryType":"query","target":"query","refId":"A","type":"timeserie","datasourceId":' + this.id + ',' +
+            '"query":"' + q + '"}]}';
+        const query = JSON.parse(str);
+        return this.doTsdbRequest(query).then(response => {
             const res = handleTsdbResponse(response);
             if (res && res.data && res.data.length) {
-                return res.data[0].rows;
+                let rows = res.data[0].rows;
+                rows = rows.map(item => item[0]);
+                return rows;
             }
             else {
                 return [];
