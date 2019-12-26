@@ -64,7 +64,7 @@ export class GenericDatasource {
     metricFindQuery(q) {
         q = this.templateSrv.replace(q, {}, 'glob');
         const to = new Date().getTime();
-        const from = to - 86400;
+        const from = to - 86400000;
         const str = '{"requestId":"Q100","timezone":"","range":{"from":"' + from + '","to":"' + to + '"},' +
             '"targets":[{"queryType":"query","target":"query","refId":"A","type":"timeserie","datasourceId":' + this.id + ',' +
             '"query":"' + q + '"}]}';
