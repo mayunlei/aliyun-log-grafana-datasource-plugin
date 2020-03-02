@@ -145,18 +145,20 @@ System.register(['lodash'], function (_export, _context) {
                     }
                 }, {
                     key: 'metricFindQuery',
-                    value: function metricFindQuery(query) {
-                        var interpolated = {
-                            target: this.templateSrv.replace(query, null, 'regex'),
-                            datasourceId: this.id,
-                            queryType: "search"
-                        };
-                        return this.doTsdbRequest({
-                            targets: [interpolated]
-                        }).then(function (response) {
+                    value: function metricFindQuery(q) {
+                        q = this.templateSrv.replace(q, {}, 'glob');
+                        var to = this.templateSrv.timeRange.to.unix() * 1000;
+                        var from = this.templateSrv.timeRange.from.unix() * 1000;
+                        var str = '{"requestId":"Q100","timezone":"","range":{"from":"' + from + '","to":"' + to + '"},' + '"targets":[{"queryType":"query","target":"query","refId":"A","type":"timeserie","datasourceId":' + this.id + ',' + '"query":"' + q + '"}]}';
+                        var query = JSON.parse(str);
+                        return this.doTsdbRequest(query).then(function (response) {
                             var res = handleTsdbResponse(response);
                             if (res && res.data && res.data.length) {
-                                return res.data[0].rows;
+                                var rows = res.data[0].rows;
+                                rows = rows.map(function (item) {
+                                    return item[0];
+                                });
+                                return rows;
                             } else {
                                 return [];
                             }

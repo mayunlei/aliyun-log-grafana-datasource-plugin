@@ -330,6 +330,13 @@ func (ds *SlsDatasource) BuildTable(ch chan *datasource.QueryResult, logs []map[
 				}
 			}
 		}
+		if len(ycols) == 1 && ycols[0] == "" {
+			for k, v := range alog {
+				if k != "__source__" && k != "__time__" {
+					values = append(values, ds.GetValue(v))
+				}
+			}
+		}
 		rows = append(rows, &datasource.TableRow{Values: values})
 	}
 	table := &datasource.Table{

@@ -27,7 +27,9 @@ Access 设置为 `Server(Default)`
 
 设置 Project 和 logstore
 
-设置 AccessId 和 AccessKeySecret , 最好配置为子账号的AK
+设置 AccessId 和 AccessKeySecret , 最好配置为子账号的AK 
+
+为保证数据安全 , AK保存后清空 , 且不会回显
 
 
 ## 添加仪表盘
