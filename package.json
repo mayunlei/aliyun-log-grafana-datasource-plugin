@@ -13,14 +13,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/grafana/simple-json-backend-datasource.git"
+    "url": "git+https://github.com/aliyun/aliyun-log-grafana-datasource-plugin.git"
   },
   "author": "Grafana Labs",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/grafana/simple-json-backend-datasource/issues"
+    "url": "https://github.com/aliyun/aliyun-log-grafana-datasource-plugin/issues"
   },
-  "homepage": "https://github.com/grafana/simple-json-backend-datasource",
+  "homepage": "https://github.com/aliyun/aliyun-log-grafana-datasource-plugin",
   "engineStrict": true,
   "devDependencies": {
     "@types/angular": "^1.6.43",

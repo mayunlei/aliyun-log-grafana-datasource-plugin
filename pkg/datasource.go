@@ -3,14 +3,15 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"sort"
+	"strconv"
+	"strings"
+
 	sls "github.com/aliyun/aliyun-log-go-sdk"
 	"github.com/grafana/grafana_plugin_model/go/datasource"
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-plugin"
 	"golang.org/x/net/context"
-	"sort"
-	"strconv"
-	"strings"
 )
 
 type SlsDatasource struct {
@@ -146,6 +147,7 @@ func (ds *SlsDatasource) QueryLogs(ch chan *datasource.QueryResult, query *datas
 	var tables []*datasource.Table
 	xcol := queryInfo.Xcol
 	var ycols []string
+	queryInfo.Ycol = strings.Replace(queryInfo.Ycol, " ", "", -1)
 	isFlowGraph := strings.Contains(queryInfo.Ycol, "#:#")
 	if isFlowGraph {
 		ycols = strings.Split(queryInfo.Ycol, "#:#")

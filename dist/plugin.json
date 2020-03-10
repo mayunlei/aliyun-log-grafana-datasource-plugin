@@ -26,11 +26,11 @@
     "links": [
       {
         "name": "GitHub",
-        "url": "https://github.com/grafana/simple-json-backend-datasource"
+        "url": "https://github.com/aliyun/aliyun-log-grafana-datasource-plugin"
       },
       {
         "name": "MIT License",
-        "url": "https://github.com/grafana/simple-json-backend-datasource/blob/master/LICENSE"
+        "url": "https://github.com/aliyun/aliyun-log-grafana-datasource-plugin/blob/master/LICENSE"
       }
     ],
     "version": "1.0.0",
