@@ -1,7 +1,7 @@
 {
-  "name": "grafana-sls",
+  "name": "aliyun-log-service",
   "version": "1.0.0",
-  "description": "Aliyun Log Datasource (backend version)",
+  "description": "Aliyun log service datasource (backend version)",
   "private": true,
   "main": "index.js",
   "scripts": {
@@ -15,8 +15,8 @@
     "type": "git",
     "url": "git+https://github.com/aliyun/aliyun-log-grafana-datasource-plugin.git"
   },
-  "author": "Grafana Labs",
-  "license": "ISC",
+  "author": "aliyun log service dev",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/aliyun/aliyun-log-grafana-datasource-plugin/issues"
   },
