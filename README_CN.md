@@ -142,5 +142,20 @@ Metric Field 设置为 `pv`
 - WHEN `avg ()` OF `query (B, 5m, now)` IS ABOVE `89`, 代表线条B最近五分钟的均值超过89告警
 - 在Notifications下添加通知方式及通知信息
 
+## 错误诊断
+
+查看grafana 日志
+
+在 mac 日志目录是 /usr/local/var/log/grafana
+
+在 linux 日志目录是 /var/log/grafana
+
+- aliyun-log-plugin_linux_amd64: permission denied , 需要授予aliyun-log-plugin_linux_amd64执行权限
+
+
+
+
+
+
 
 
