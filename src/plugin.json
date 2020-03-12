@@ -1,6 +1,6 @@
 {
   "name": "LogService",
-  "id": "log-service-datasource",
+  "id": "grafana-log-service-datasource",
   "type": "datasource",
 
   "partials": {
