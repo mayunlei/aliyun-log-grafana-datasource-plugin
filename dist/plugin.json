@@ -8,6 +8,7 @@
   },
 
   "metrics": true,
+  "logs": true,
   "annotations": true,
   "backend": true,
   "alerting": true,

@@ -1,11 +1,40 @@
 <query-editor-row query-ctrl="ctrl" can-collapse="true">
+
+    <div class="gf-form-inline" ng-if="ctrl.target.type === 'logs'||ctrl.target.type === null">
+        <div class="gf-form">
+            <label class="gf-form-label query-keyword width-12">Logs Per Page</label>
+            <input type="number"
+                   class="gf-form-input width-5"
+                   placeholder="100"
+                   ng-model="ctrl.target.logsPerPage"
+                   ng-blur="ctrl.queryChanged()" />
+        </div>
+        <div class="gf-form">
+            <label class="gf-form-label query-keyword width-7">Log Entries</label>
+            <div class="gf-form-label query-keyword  width-12">{{ctrl.target.logEntries}}</div>
+        </div>
+        <div class="gf-form">
+            <button class="btn btn-secondary gf-form-btn" ng-click="ctrl.previousPage()">Prev Page</button>
+            <button class="btn btn-secondary gf-form-btn" ng-click="ctrl.nextPage()">Next Page</button>
+        </div>
+        <div class="gf-form">
+            <label class="gf-form-label query-keyword width-7">Go To Page</label>
+            <input type="number"
+                   class="gf-form-input width-5"
+                   ng-model="ctrl.target.currentPage"
+                   ng-blur="ctrl.goToPage()" />
+            <div class="gf-form-label query-keyword width-12" >/ {{ctrl.target.totalPages}}</div>
+        </div>
+    </div>
+
+
     <div class="gf-form-inline">
         <div class="gf-form gf-form--grow"><label class="gf-form-label query-keyword width-7">Query</label><input
                 type="text" class="gf-form-input" ng-model="ctrl.target.query"
-                spellcheck="false" placeholder="log query" ng-blur="ctrl.refresh()"></div>
+                spellcheck="false" placeholder="log query" ng-blur="ctrl.queryChanged()"></div>
 
     </div>
-    <div class="gf-form-inline">
+    <div class="gf-form-inline" ng-if="ctrl.target.type != 'logs'">
         <div class="gf-form gf-form--grow"><label class="gf-form-label query-keyword width-7">Y - column</label><input
                 type="text" class="gf-form-input" ng-model="ctrl.target.ycol"
                 spellcheck="false" placeholder="y column name" ng-blur="ctrl.refresh()"></div>

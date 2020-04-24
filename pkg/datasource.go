@@ -132,8 +132,29 @@ func (ds *SlsDatasource) QueryLogs(ch chan *datasource.QueryResult, query *datas
 		}
 		return
 	}
+	xcol := queryInfo.Xcol
+
+	queryType := queryInfo.QueryType
+	if queryType == "histograms" {
+		getHistogramsResp, err := client.GetHistograms(logSource.Project, logSource.LogStore, "", from, to, queryInfo.Query)
+		if err != nil {
+			ds.logger.Error("GetHistograms ", "query : ", queryInfo.Query, "error ", err)
+			ch <- &datasource.QueryResult{
+				Error: err.Error(),
+			}
+			return
+		}
+		ch <- &datasource.QueryResult{
+			RefId:    query.RefId,
+			MetaJson: "{\"count\":" + strconv.FormatInt(getHistogramsResp.Count, 10) + "}",
+		}
+		return
+	}
+
+	var ycols []string
+	offset := (queryInfo.CurrentPage - 1) * queryInfo.LogsPerPage
 	getLogsResp, err := client.GetLogs(logSource.Project, logSource.LogStore, "",
-		from, to, queryInfo.Query, 0, 0, true)
+		from, to, queryInfo.Query, queryInfo.LogsPerPage, offset, true)
 	if err != nil {
 		ds.logger.Error("GetLogs ", "query : ", queryInfo.Query, "error ", err)
 		ch <- &datasource.QueryResult{
@@ -145,8 +166,17 @@ func (ds *SlsDatasource) QueryLogs(ch chan *datasource.QueryResult, query *datas
 
 	var series []*datasource.TimeSeries
 	var tables []*datasource.Table
-	xcol := queryInfo.Xcol
-	var ycols []string
+	if !strings.Contains(queryInfo.Query, "|") {
+		ds.BuildLogs(ch, logs, &tables)
+		ch <- &datasource.QueryResult{
+			RefId:    query.RefId,
+			Tables:   tables,
+			Series:   series,
+			MetaJson: "",
+		}
+		return
+	}
+
 	queryInfo.Ycol = strings.Replace(queryInfo.Ycol, " ", "", -1)
 	isFlowGraph := strings.Contains(queryInfo.Ycol, "#:#")
 	if isFlowGraph {
@@ -339,6 +369,47 @@ func (ds *SlsDatasource) BuildTable(ch chan *datasource.QueryResult, logs []map[
 				}
 			}
 		}
+		rows = append(rows, &datasource.TableRow{Values: values})
+	}
+	table := &datasource.Table{
+		Columns: columns,
+		Rows:    rows,
+	}
+	*tables = append(*tables, table)
+}
+
+func (ds *SlsDatasource) BuildLogs(ch chan *datasource.QueryResult, logs []map[string]string, tables *[]*datasource.Table) {
+	var columns []*datasource.TableColumn
+	columns = append(columns, &datasource.TableColumn{
+		Name: "Time",
+	})
+	columns = append(columns, &datasource.TableColumn{
+		Name: "Message",
+	})
+
+	var rows []*datasource.TableRow
+	for _, alog := range logs {
+		var values []*datasource.RowValue
+		message := ""
+
+		var keys []string
+		for k := range alog {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for _, k := range keys {
+			v := alog[k]
+			if k == "__time__" {
+				v = v + "000"
+				values = append(values, ds.GetValue(v))
+			}
+			message = message + k + "=" + v + " "
+		}
+
+		values = append(values, &datasource.RowValue{
+			Kind:        datasource.RowValue_TYPE_STRING,
+			StringValue: message,
+		})
 		rows = append(rows, &datasource.TableRow{Values: values})
 	}
 	table := &datasource.Table{

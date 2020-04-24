@@ -110,17 +110,23 @@ export class GenericDatasource {
                 queryType: 'query',
                 target: this.templateSrv.replace(target.target, options.scopedVars, 'regex'),
                 refId: target.refId,
-                hide: target.hide,
+                // hide: target.hide,
                 type: target.type || 'timeserie',
                 datasourceId: this.id,
                 query: this.replaceQueryParameters(target, options),
                 xcol: target.xcol,
-                ycol: target.ycol
+                ycol: target.ycol,
+                logsPerPage: target.logsPerPage,
+                currentPage: target.currentPage,
+                mode: target.mode
             };
         });
         return options;
     }
     replaceQueryParameters(target, options) {
+        if (typeof (target.query) == "undefined") {
+            target.query = "";
+        }
         let query = this.templateSrv.replace(target.query, options.scopedVars, function (value, variable) {
             if (typeof value == "object" && (variable.multi || variable.includeAll)) {
                 const a = [];
@@ -201,7 +207,6 @@ export function handleTsdbResponse(response) {
         });
     });
     response.data = res;
-    console.log(res);
     return response;
 }
 export function mapToTextValue(result) {

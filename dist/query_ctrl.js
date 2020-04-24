@@ -68,24 +68,70 @@ System.register(['app/plugins/sdk', './css/query-editor.css!'], function (_expor
                     var _this = _possibleConstructorReturn(this, (GenericDatasourceQueryCtrl.__proto__ || Object.getPrototypeOf(GenericDatasourceQueryCtrl)).call(this, $scope, $injector));
 
                     _this.target.target = _this.target.ycol;
-                    _this.target.type = _this.target.type || 'timeserie';
+                    _this.target.type = _this.panel.type || 'timeserie';
+                    _this.target.logsPerPage = 100;
+                    _this.target.currentPage = 1;
+                    _this.getHistograms();
                     return _this;
                 }
+                // getOptions(query) {
+                //   return this.datasource.metricFindQuery(query || '');
+                // }
+                //
+                // toggleEditorMode() {
+                //   this.target.rawQuery = !this.target.rawQuery;
+                // }
+                //
+                // onChangeInternal() {
+                //   this.panelCtrl.refresh(); // Asks the panel to refresh data.
+                // }
+
 
                 _createClass(GenericDatasourceQueryCtrl, [{
-                    key: 'getOptions',
-                    value: function getOptions(query) {
-                        return this.datasource.metricFindQuery(query || '');
+                    key: 'getHistograms',
+                    value: function getHistograms() {
+                        var _this2 = this;
+
+                        var query = this.datasource.replaceQueryParameters(this.target, { "scopedVars": "" });
+                        var to = this.datasource.templateSrv.timeRange.to.unix() * 1000;
+                        var from = this.datasource.templateSrv.timeRange.from.unix() * 1000;
+                        var data = '{"queries":[{"queryType":"query","target":"","refId":"A","type":"histograms","datasourceId":' + this.datasource.id + ',"query":"' + query + '","xcol":"","ycol":""}],"from":"' + from + '","to":"' + to + '"}';
+                        this.datasource.backendSrv.datasourceRequest({
+                            url: '/api/tsdb/query',
+                            method: 'POST',
+                            data: data
+                        }).then(function (res) {
+                            _this2.target.logEntries = res.data.results.A.meta.count;
+                            _this2.target.totalPages = Math.ceil(_this2.target.logEntries / _this2.target.logsPerPage);
+                        });
                     }
                 }, {
-                    key: 'toggleEditorMode',
-                    value: function toggleEditorMode() {
-                        this.target.rawQuery = !this.target.rawQuery;
+                    key: 'queryChanged',
+                    value: function queryChanged() {
+                        this.getHistograms();
+                        this.refresh();
                     }
                 }, {
-                    key: 'onChangeInternal',
-                    value: function onChangeInternal() {
-                        this.panelCtrl.refresh(); // Asks the panel to refresh data.
+                    key: 'previousPage',
+                    value: function previousPage() {
+                        if (this.target.currentPage > 1) {
+                            this.target.currentPage = this.target.currentPage - 1;
+                            this.queryChanged();
+                        }
+                    }
+                }, {
+                    key: 'nextPage',
+                    value: function nextPage() {
+                        if (this.target.currentPage < this.target.totalPages) {
+                            this.target.currentPage = this.target.currentPage + 1;
+                            this.queryChanged();
+                        }
+                    }
+                }, {
+                    key: 'goToPage',
+                    value: function goToPage() {
+                        this.target.currentPage = 1;
+                        this.queryChanged();
                     }
                 }]);
 

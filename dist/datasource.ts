@@ -48,13 +48,13 @@ export class GenericDatasource {
   }
 
   query(options) {
+
     const query = this.buildQueryParameters(options);
     query.targets = query.targets.filter(t => !t.hide);
 
     if (query.targets.length <= 0) {
       return Promise.resolve({data: []});
     }
-
     return this.doTsdbRequest(query).then(handleTsdbResponse);
   }
 
@@ -154,12 +154,15 @@ export class GenericDatasource {
         queryType: 'query',
         target: this.templateSrv.replace(target.target, options.scopedVars, 'regex'),
         refId: target.refId,
-        hide: target.hide,
+        // hide: target.hide,
         type: target.type || 'timeserie',
         datasourceId: this.id,
         query: this.replaceQueryParameters(target, options),
         xcol: target.xcol,
-        ycol: target.ycol
+        ycol: target.ycol,
+        logsPerPage: target.logsPerPage,
+        currentPage: target.currentPage,
+        mode: target.mode
       };
     });
 
@@ -167,6 +170,9 @@ export class GenericDatasource {
   }
 
   replaceQueryParameters(target,options): TSDBRequestOptions {
+      if (typeof(target.query) == "undefined"){
+          target.query=""
+      }
     let query = this.templateSrv.replace(target.query, options.scopedVars, function (value, variable) {
       if (typeof value == "object" && (variable.multi || variable.includeAll)) {
         const a = [];
@@ -241,7 +247,6 @@ export function handleTsdbResponse(response) {
   });
 
   response.data = res;
-  console.log(res);
   return response;
 }
 

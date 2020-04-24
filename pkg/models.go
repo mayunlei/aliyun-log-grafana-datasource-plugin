@@ -8,7 +8,11 @@ type LogSource struct {
 }
 
 type QueryInfo struct {
-	Query string `json:"query"`
-	Xcol  string `json:"xcol"`
-	Ycol  string `json:"ycol"`
+	QueryType   string `json:"type"`
+	QueryMode   string `json:"mode"`
+	Query       string `json:"query"`
+	Xcol        string `json:"xcol"`
+	Ycol        string `json:"ycol"`
+	LogsPerPage int64  `json:"logsPerPage"`
+	CurrentPage int64  `json:"currentPage"`
 }

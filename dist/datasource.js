@@ -24,7 +24,6 @@ System.register(['lodash'], function (_export, _context) {
             });
         });
         response.data = res;
-        console.log(res);
         return response;
     }
 
@@ -201,12 +200,15 @@ System.register(['lodash'], function (_export, _context) {
                                 queryType: 'query',
                                 target: _this.templateSrv.replace(target.target, options.scopedVars, 'regex'),
                                 refId: target.refId,
-                                hide: target.hide,
+                                // hide: target.hide,
                                 type: target.type || 'timeserie',
                                 datasourceId: _this.id,
                                 query: _this.replaceQueryParameters(target, options),
                                 xcol: target.xcol,
-                                ycol: target.ycol
+                                ycol: target.ycol,
+                                logsPerPage: target.logsPerPage,
+                                currentPage: target.currentPage,
+                                mode: target.mode
                             };
                         });
                         return options;
@@ -214,6 +216,9 @@ System.register(['lodash'], function (_export, _context) {
                 }, {
                     key: 'replaceQueryParameters',
                     value: function replaceQueryParameters(target, options) {
+                        if (typeof target.query == "undefined") {
+                            target.query = "";
+                        }
                         var query = this.templateSrv.replace(target.query, options.scopedVars, function (value, variable) {
                             if ((typeof value === 'undefined' ? 'undefined' : _typeof(value)) == "object" && (variable.multi || variable.includeAll)) {
                                 var a = [];
