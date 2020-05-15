@@ -77,6 +77,11 @@ func (ds *SlsDatasource) Query(ctx context.Context, tsdbReq *datasource.Datasour
 
 func (ds *SlsDatasource) GetValue(v string) *datasource.RowValue {
 	value := &datasource.RowValue{}
+	if len(v) > 10 {
+		value.StringValue = v
+		value.Kind = datasource.RowValue_TYPE_STRING
+		return value
+	}
 	intValue, err := strconv.ParseInt(v, 10, 10)
 	if err == nil {
 		value.Int64Value = intValue
