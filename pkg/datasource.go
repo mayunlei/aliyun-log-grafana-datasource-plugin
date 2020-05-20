@@ -169,9 +169,17 @@ func (ds *SlsDatasource) QueryLogs(ch chan *datasource.QueryResult, query *datas
 	}
 	logs := getLogsResp.Logs
 
+	queryInfo.Ycol = strings.Replace(queryInfo.Ycol, " ", "", -1)
+	isFlowGraph := strings.Contains(queryInfo.Ycol, "#:#")
+	if isFlowGraph {
+		ycols = strings.Split(queryInfo.Ycol, "#:#")
+	} else {
+		ycols = strings.Split(queryInfo.Ycol, ",")
+	}
+
 	var series []*datasource.TimeSeries
 	var tables []*datasource.Table
-	if !strings.Contains(queryInfo.Query, "|") {
+	if !strings.Contains(queryInfo.Query, "|") && len(ycols) == 0 {
 		ds.BuildLogs(ch, logs, &tables)
 		ch <- &datasource.QueryResult{
 			RefId:    query.RefId,
@@ -182,13 +190,6 @@ func (ds *SlsDatasource) QueryLogs(ch chan *datasource.QueryResult, query *datas
 		return
 	}
 
-	queryInfo.Ycol = strings.Replace(queryInfo.Ycol, " ", "", -1)
-	isFlowGraph := strings.Contains(queryInfo.Ycol, "#:#")
-	if isFlowGraph {
-		ycols = strings.Split(queryInfo.Ycol, "#:#")
-	} else {
-		ycols = strings.Split(queryInfo.Ycol, ",")
-	}
 	if isFlowGraph {
 		ds.BuildFlowGraph(ch, logs, xcol, ycols, query.RefId)
 		return
