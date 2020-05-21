@@ -77,6 +77,11 @@ func (ds *SlsDatasource) Query(ctx context.Context, tsdbReq *datasource.Datasour
 
 func (ds *SlsDatasource) GetValue(v string) *datasource.RowValue {
 	value := &datasource.RowValue{}
+	if len(v) > 10 {
+		value.StringValue = v
+		value.Kind = datasource.RowValue_TYPE_STRING
+		return value
+	}
 	intValue, err := strconv.ParseInt(v, 10, 10)
 	if err == nil {
 		value.Int64Value = intValue
@@ -164,9 +169,17 @@ func (ds *SlsDatasource) QueryLogs(ch chan *datasource.QueryResult, query *datas
 	}
 	logs := getLogsResp.Logs
 
+	queryInfo.Ycol = strings.Replace(queryInfo.Ycol, " ", "", -1)
+	isFlowGraph := strings.Contains(queryInfo.Ycol, "#:#")
+	if isFlowGraph {
+		ycols = strings.Split(queryInfo.Ycol, "#:#")
+	} else {
+		ycols = strings.Split(queryInfo.Ycol, ",")
+	}
+
 	var series []*datasource.TimeSeries
 	var tables []*datasource.Table
-	if !strings.Contains(queryInfo.Query, "|") {
+	if !strings.Contains(queryInfo.Query, "|") && len(queryInfo.Ycol) == 0 {
 		ds.BuildLogs(ch, logs, &tables)
 		ch <- &datasource.QueryResult{
 			RefId:    query.RefId,
@@ -177,13 +190,6 @@ func (ds *SlsDatasource) QueryLogs(ch chan *datasource.QueryResult, query *datas
 		return
 	}
 
-	queryInfo.Ycol = strings.Replace(queryInfo.Ycol, " ", "", -1)
-	isFlowGraph := strings.Contains(queryInfo.Ycol, "#:#")
-	if isFlowGraph {
-		ycols = strings.Split(queryInfo.Ycol, "#:#")
-	} else {
-		ycols = strings.Split(queryInfo.Ycol, ",")
-	}
 	if isFlowGraph {
 		ds.BuildFlowGraph(ch, logs, xcol, ycols, query.RefId)
 		return
